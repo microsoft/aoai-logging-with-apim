@@ -1,0 +1,11 @@
+{
+  "profiles": {
+    "LogParser": {
+      "commandName": "Project"
+    },
+    "Docker": {
+      "commandName": "Docker",
+
+    }
+  }
+}

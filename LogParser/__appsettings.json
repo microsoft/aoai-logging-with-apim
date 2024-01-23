@@ -1,0 +1,11 @@
+{
+  "EventHubConnectionString": "",
+  "BlobStorageConnectionStorage": "",
+  "BlobContainerName": "",
+  "CosmosDbUrl": "",
+  "CosmosDbKey": "",
+  "CosmosDbDatabaseName": "",
+  "ContentSafetyUrl": "",
+  "ContentSafetyKey": "",
+  "ApplicationInsightsConnectionString": ""
+}

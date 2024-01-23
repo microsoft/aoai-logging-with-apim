@@ -1,0 +1,27 @@
+SELECT 
+c.AOAILog.timestamp, 
+c.AOAILog.requestId,
+c.AOAILog.subscriptionId,
+c.AOAILog.subscriptionName,
+c.AOAILog.operationId,
+c.AOAILog.apiName,
+c.AOAILog.apiRevision,
+c.AOAILog.metohd,
+c.AOAILog.headers,
+c.AOAILog.elapsed,
+c.AOAILog.serviceName,
+c.AOAILog.requestIp,
+c.AOAILog.url,
+c.AOAILog.operationName,
+c.AOAILog.region,
+c.AOAILog.statusCode,
+c.AOAILog.statusReason,
+c.AOAILog.request,
+c.AOAILog.response,
+c.AOAILog.response.usage.prompt_tokens,
+c.AOAILog.response.usage.completion_tokens,
+c.AOAILog.response.usage.total_tokens,
+c.AOAILog.response.model,
+c.AOAILog.request.stream
+FROM (SELECT StringToObject(c.Properties.AOAILog) AS AOAILog FROM c) AS c
+WHERE c.AOAILog.timestamp != null
