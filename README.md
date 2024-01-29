@@ -34,6 +34,7 @@ We have more granular control to any APIs by using APIM.
 
 ```shell
 ├─assets
+├─bicep
 ├─LogParser
 ├─policies
 ├─PowerBIReports
@@ -42,7 +43,8 @@ We have more granular control to any APIs by using APIM.
 └─README.md
 ```
 
-- __LogParser__: C# sample code to parse the log in the event hub, transform and send them to Application Insights and Cosmos Db
+- __bicep__: The infrastructure as code (IaC) assets.
+- __Log Parser__: C# sample code to parse the log in the event hub, transform and send them to Application Insights and Cosmos Db
 - __policies__: APIM policy fragments
 - __PowerBIReports__: contains sample Power BI reports
 - __queries__: contains Kusto and Cosmos DB query that are used for creating report
@@ -51,6 +53,7 @@ We have more granular control to any APIs by using APIM.
 See the following for more detail in each component.
 
 - [How to use Azure API Management with Azure Open AI](APIM.md)
+- [Infrastructure as Code (bicep)](/bicep/README.md)
 - [C# Log Parser](/LogParser/README.md)
 - [Power BI Reports](/PowerBIReports/README.md)
 
