@@ -1,0 +1,16 @@
+<policies>
+    <inbound>
+        <base />
+        <include-fragment fragment-id="inbound-logging" />
+    </inbound>
+    <backend>
+        <base />
+    </backend>
+    <outbound>
+        <base />
+        <include-fragment fragment-id="outbound-logging" />
+    </outbound>
+    <on-error>
+        <base />
+    </on-error>
+</policies>
