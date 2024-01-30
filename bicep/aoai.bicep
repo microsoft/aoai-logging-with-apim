@@ -38,7 +38,8 @@ resource aoai 'Microsoft.CognitiveServices/accounts@2023-10-01-preview' = {
     name: 'S0'
   }
   kind: 'OpenAI'
-  properties: {     
+  properties: {
+    customSubDomainName: toLower(aoaiName)
   }
 }
 
