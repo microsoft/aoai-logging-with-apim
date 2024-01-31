@@ -1,0 +1,5 @@
+{"rule":"UPPERCASE_SENTENCE_START","sentence":"^\\Qgpt-35-turbo, gpt-35-turbo-instruct, and text-ada-embedding-002.\\E$"}
+{"rule":"MORFOLOGIK_RULE_EN_US","sentence":"^\\QFor example, if you want to change the model and deployment names for the AOAI, change the \\E(?:Dummy|Ina|Jimmy-)[0-9]+\\Q variable in aoai.bicep.\\E$"}
+{"rule":"MORFOLOGIK_RULE_EN_US","sentence":"^\\QWhen you change the deployment, you also need to update the \\E(?:Dummy|Ina|Jimmy-)[0-9]+\\Q variable in apimApis.bicep as they are closely related.\\E$"}
+{"rule":"LC_AFTER_PERIOD","sentence":"^\\QWhen you change the deployment, you also need to update the \\E(?:Dummy|Ina|Jimmy-)[0-9]+\\Q variable in apimApis.bicep as they are closely related.\\E$"}
+{"rule":"LC_AFTER_PERIOD","sentence":"^\\QSee main.bicep for parameters information.\\E$"}

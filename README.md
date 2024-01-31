@@ -28,7 +28,16 @@ We have more granular control to any APIs by using APIM.
 
 ## Solution Architecture
 
+### Application Level
+
+APIM Policy handles network traffic and logging.
 ![architecture](/assets/aoai_apim.svg)
+
+### Network Level
+
+Use Private Endpoint and Virtual Network to secure the connection between resources. This prevents direct access to resources from external. 
+
+![network architecture](/assets/aoai_apim.security.png)
 
 # Repo structure
 

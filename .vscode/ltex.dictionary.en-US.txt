@@ -1,0 +1,5 @@
+APIM
+AOAI
+IaC
+Serilog
+dotnet

@@ -1,22 +1,14 @@
 // Copyright (c) Microsoft. All rights reserved.
 
-@description('Specifies a Event Hub Namespace name that is used for APIM logger.')
 param eventHubNamespaceName string
-
-@description('Specifies a Event Hub name.')
 param eventHubName string
-
-@description('Specifies the Azure location for all resources.')
+param privateEndpointName string
 param location string
-
-@description('Specifies the messaging tier for Event Hub Namespace.')
-@allowed([
-  'Basic'
-  'Standard'
-])
+param vnetName string
+param subnetName string
 param eventHubSku string
 
-resource eventHubNamespace 'Microsoft.EventHub/namespaces@2021-11-01' = {
+resource eventHubNamespace 'Microsoft.EventHub/namespaces@2022-10-01-preview' = {
   name: eventHubNamespaceName
   location: location
   sku: {
@@ -27,6 +19,7 @@ resource eventHubNamespace 'Microsoft.EventHub/namespaces@2021-11-01' = {
   properties: {
     isAutoInflateEnabled: false
     maximumThroughputUnits: 0
+    //publicNetworkAccess: 'Disabled' // Consider enabling this when Log Parser can access to it from the vnet
   }
 }
 
@@ -46,5 +39,20 @@ resource send 'Microsoft.EventHub/namespaces/eventhubs/authorizationRules@2021-0
     rights: [
       'Send'
     ]
+  }
+}
+
+module privateEndpoint '../network/privateEndpoint.bicep' = {
+  name: '${eventHubNamespaceName}-privateEndpoint'
+  params: {
+    groupIds: [
+      'namespace'
+    ]
+    dnsZoneName: 'privatelink.servicebus.windows.net'
+    name: privateEndpointName
+    subnetName: subnetName
+    privateLinkServiceId: eventHubNamespace.id
+    vnetName: vnetName
+    location: location
   }
 }
