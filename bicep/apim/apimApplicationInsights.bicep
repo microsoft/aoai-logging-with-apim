@@ -1,9 +1,6 @@
 // Copyright (c) Microsoft. All rights reserved.
 
-@description('The name of the API Management service instance')
 param apiManagementServiceName string
-
-@description('Specifies an application insights name.')
 param applicationInsightsName string
 
 resource apiManagementService 'Microsoft.ApiManagement/service@2023-03-01-preview' existing = {

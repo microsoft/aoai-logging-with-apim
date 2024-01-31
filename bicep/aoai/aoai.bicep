@@ -1,13 +1,22 @@
 // Copyright (c) Microsoft. All rights reserved.
 
-@description('Specifies an Azure Open AI name.')
+@description('The Azure Open AI name.')
 param aoaiName string
+
+@description('The private endpoint name.')
+param privateEndpointName string
 
 @description('Location for all resources.')
 param location string
 
 @description('The name of the key vault to be created.')
 param keyVaultName string
+
+@description('The virtual network name.')
+param vnetName string
+
+@description('The virtual network subnet name.')
+param subnetName string
 
 resource vault 'Microsoft.KeyVault/vaults@2022-07-01' existing = {
   name: keyVaultName
@@ -40,6 +49,10 @@ resource aoai 'Microsoft.CognitiveServices/accounts@2023-10-01-preview' = {
   kind: 'OpenAI'
   properties: {
     customSubDomainName: toLower(aoaiName)
+    publicNetworkAccess: 'Disabled'
+    networkAcls: {
+      defaultAction: 'Deny'
+    }
   }
 }
 
@@ -71,5 +84,20 @@ resource aoaiKey 'Microsoft.KeyVault/vaults/secrets@2022-07-01' = {
     }
     contentType: 'string'
     value: aoai.listKeys().key1
+  }
+}
+
+module privateEndpoint '../network/privateEndpoint.bicep' = {
+  name: '${aoaiName}-privateEndpoint'
+  params: {
+    groupIds: [
+      'account'
+    ]
+    dnsZoneName: 'privatelink.openai.azure.com'
+    name: privateEndpointName
+    subnetName: subnetName
+    privateLinkServiceId: aoai.id
+    vnetName: vnetName
+    location: location
   }
 }

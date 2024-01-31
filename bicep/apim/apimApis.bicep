@@ -1,12 +1,7 @@
 // Copyright (c) Microsoft. All rights reserved.
 
-@description('The name of the API Management service instance')
 param apiManagementServiceName string
-
-@description('Specifies an Azure Open AI name.')
 param aoaiName string
-
-@description('Specifies an Application Insights name.')
 param applicationInsightsName string
 
 resource apiManagementService 'Microsoft.ApiManagement/service@2023-03-01-preview' existing = {
@@ -38,8 +33,7 @@ resource api 'Microsoft.ApiManagement/service/apis@2023-03-01-preview' = {
   }
 }
 
-
-var apiPolicy = loadTextContent('../policies/api-policy.xml')
+var apiPolicy = loadTextContent('../../policies/api-policy.xml')
 
 resource topLevelPolicy 'Microsoft.ApiManagement/service/apis/policies@2023-03-01-preview' = {
   name: 'policy'
@@ -64,7 +58,7 @@ resource diag 'Microsoft.ApiManagement/service/apis/diagnostics@2023-03-01-previ
   }
 }
 
-var operationPolicy = loadTextContent('../policies/operation-policy.xml')
+var operationPolicy = loadTextContent('../../policies/operation-policy.xml')
 
 var deployments = [
   {

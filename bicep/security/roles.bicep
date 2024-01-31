@@ -1,9 +1,6 @@
 // Copyright (c) Microsoft. All rights reserved.
 
-@description('The name of the key vault to be created.')
 param keyVaultName string
-
-@description('Specifies an APIM identity id.')
 param apimIdentityId string
 
 resource vault 'Microsoft.KeyVault/vaults@2022-07-01' existing = {

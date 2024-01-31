@@ -1,6 +1,6 @@
 # Infrastructure as Code (bicep)
 
-We can use the bicep files to provision a sample environment. [Bicep](https://learn.microsoft.com/azure/azure-resource-manager/bicep/) is an IaC solution for Azure that let us write yaml to define the Azure resources. 
+We can use the bicep files to provision a sample environment. [Bicep](https://learn.microsoft.com/azure/azure-resource-manager/bicep/) is an Infrastructure as Code (IaC) solution for Azure that let us write YAML to define the Azure resources. 
 
 ## Run the bicep
 
@@ -15,6 +15,7 @@ We can use the bicep files to provision a sample environment. [Bicep](https://le
 
 The bicep files deploys following resources.
 
+- Network: Virtual Network, Subnet, DNS, Public IP address and private endpoint to secure Azure Resources.
 - Application Insights: Logging metrics from APIM.
 - Key Vault: Stores the key of AOAI.
 - Event Hub Namespace and Event Hub: The logging destination of the APIM.
@@ -22,7 +23,7 @@ The bicep files deploys following resources.
 - APIM: The APIM instance
   - Logger: The logger for the Event Hub.
   - Named Value: Linked to the Key Vault for AOAI key.
-  - Backend: Stores the AOAI endpoint information with api-key header.
+  - Backend: Stores the AOAI endpoint information with ``api-key`` header.
   - Policy Fragments: The inbound and outbound logging policy.
   - API and Operations: The API and the operations of Azure Open AI deployments.
 
@@ -34,6 +35,8 @@ Once the deployment has been completed, we should be able to consume the endpoin
 1. Use any HTTP client tool to call the Chat Completion, Completion or Embedding endpoint.
 
 The header and body formats are exactly same as AOAI endpoints. Only the differences are the endpoint address and the key, which is APIM subscription key.
+
+As other resources are protected from external access, you cannot access to AOAI endpoint directly.
 
 # Use existing resources
 

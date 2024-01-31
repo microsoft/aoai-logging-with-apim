@@ -1,36 +1,23 @@
 // Copyright (c) Microsoft. All rights reserved.
 
-@description('The name of the API Management service instance')
 param apiManagementServiceName string
-
-@description('The email address of the owner of the service')
-@minLength(1)
 param publisherEmail string
-
-@description('The name of the owner of the service')
-@minLength(1)
 param publisherName string
-
-@description('The pricing tier of this API Management service')
-@allowed([
-  'Consumption'
-  'Developer'
-  'Basic'
-  'Standard'
-  'Premium'
-])
 param sku string
-
-@description('The instance size of this API Management service.')
-@allowed([
-  0
-  1
-  2
-])
 param skuCount int
-
-@description('Location for all resources.')
 param location string
+param publicIpName string
+param vnetName string
+param subnetName string
+
+resource apimSubnet 'Microsoft.Network/virtualNetworks/subnets@2022-09-01' existing = {
+  name: '${vnetName}/${subnetName}'
+}
+
+
+resource publicIP 'Microsoft.Network/publicIPAddresses@2023-04-01' existing  = {
+  name: publicIpName
+}
 
 resource apiManagementService 'Microsoft.ApiManagement/service@2023-03-01-preview' = {
   name: apiManagementServiceName
@@ -42,6 +29,11 @@ resource apiManagementService 'Microsoft.ApiManagement/service@2023-03-01-previe
   properties: {
     publisherEmail: publisherEmail
     publisherName: publisherName
+    virtualNetworkType: 'External'
+    publicIpAddressId: publicIP.id
+    virtualNetworkConfiguration: {
+       subnetResourceId: apimSubnet.id
+    }
   }
   identity: {
     type: 'SystemAssigned'
