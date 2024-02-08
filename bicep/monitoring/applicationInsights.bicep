@@ -68,6 +68,9 @@ module privateEndpoint '../network/privateEndpoint.bicep' = {
     vnetName: vnetName
     location: location
   }
+  dependsOn: [
+    applicationInsights
+  ]
 }
 
 resource appInsightsScopedResource 'Microsoft.Insights/privateLinkScopes/scopedResources@2021-07-01-preview' = {
@@ -76,4 +79,7 @@ resource appInsightsScopedResource 'Microsoft.Insights/privateLinkScopes/scopedR
   properties: {
     linkedResourceId: applicationInsights.id
   }
+  dependsOn: [
+    privateEndpoint
+  ]
 }
