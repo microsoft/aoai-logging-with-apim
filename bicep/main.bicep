@@ -152,6 +152,7 @@ module vnet './network/vnet.bicep' = {
 module cosmosDb './db/cosmosDb.bicep' = {
   name: 'cosmosDbDeployment'
   params: {
+    keyVaultName: keyVaultName
     location: location
     accountName: cosmosDbAccountName
     databaseName: cosmosDbDatabaseName
@@ -161,6 +162,11 @@ module cosmosDb './db/cosmosDb.bicep' = {
     subnetName: pepSubnetName
     privateEndpointName: cosmosDbPrivateEndpointName
   }
+  dependsOn:[
+    vnet
+    dns
+    keyVault
+  ]
 }
 
 //## Create Application Insights ##
@@ -216,9 +222,10 @@ module aoai './/aoai/aoai.bicep' = {
 }
 
 //## Create Event Hub Namespace and Event Hub so that Azure API Management can send logs to it ##
-module eventHub './/eventhub/eventHub.bicep' = {
+module eventHub './eventhub/eventHub.bicep' = {
   name: 'eventHubDeployment'
   params: {
+    keyVaultName: keyVaultName
     eventHubNamespaceName: eventHubNamespaceName
     eventHubName: eventHubName
     location: location
@@ -238,9 +245,8 @@ module webApp './webapp/webapp.bicep' = {
   params: {
     applicationInsightsName: applicationInsightsName
     appServicePlanName: loggingAppServiceName
-    eventHubNamespaceName: eventHubNamespaceName
     eventHubName: eventHubName
-    cosmosDbName: cosmosDbAccountName
+    cosmosDbAccountName: cosmosDbAccountName
     cosmosDbDatabaseName: cosmosDbDatabaseName
     cosmosDbContainerName: cosmosDbContainerName
     sku: 'S1'
@@ -250,6 +256,7 @@ module webApp './webapp/webapp.bicep' = {
     subnetName: webAppSubnetName
     privateEndpointName: webAppPrivateEndpointName
     privateEndpointSubnetName: pepSubnetName
+    keyVaultName: keyVaultName
   }
   dependsOn: [
     vnet
@@ -294,26 +301,13 @@ module roles './security/roles.bicep' = {
   name: 'rolesDeployment'
   params: {
      apimIdentityId: apim.outputs.apimIdentityId
+     webAppIdentityId: webApp.outputs.webAppIdentityId
      keyVaultName: keyVaultName
   }
   dependsOn: [
     apim
     keyVault
-  ]
-}
-
-//## Create Event Hub Logger ##
-module apimLogger './apim/apimLogger.bicep' = {
-  name: 'apimLoggerDeployment'
-  params: {
-    apiManagementServiceName: apiManagementServiceName
-    eventHubName: eventHubName
-    eventHubNamespaceName: eventHubNamespaceName
-    loggerName: 'aoailogger' // This name is also used in the policy fragment
-  }
-  dependsOn: [
-    apim
-    eventHub
+    webApp
   ]
 }
 

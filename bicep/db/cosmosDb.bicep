@@ -1,5 +1,6 @@
 // Copyright (c) Microsoft. All rights reserved.
 
+param keyVaultName string
 param accountName string
 param location string
 param primaryRegion string
@@ -16,6 +17,10 @@ var locations = [
     isZoneRedundant: false
   }
 ]
+
+resource vault 'Microsoft.KeyVault/vaults@2022-07-01' existing = {
+  name: keyVaultName
+}
 
 resource account 'Microsoft.DocumentDB/databaseAccounts@2022-05-15' = {
   name: toLower(accountName)
@@ -90,5 +95,17 @@ module privateEndpoint '../network/privateEndpoint.bicep' = {
     privateLinkServiceId: account.id
     vnetName: vnetName
     location: location
+  }
+}
+
+resource cosmosDbKey 'Microsoft.KeyVault/vaults/secrets@2022-07-01' = {
+  name: toLower(accountName)
+  parent: vault
+  properties: {
+    attributes: {
+      enabled: true
+    }
+    contentType: 'string'
+    value: account.listKeys().primaryMasterKey
   }
 }

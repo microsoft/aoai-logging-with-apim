@@ -1,5 +1,6 @@
 // Copyright (c) Microsoft. All rights reserved.
 
+param keyVaultName string
 param eventHubNamespaceName string
 param eventHubName string
 param privateEndpointName string
@@ -7,6 +8,10 @@ param location string
 param vnetName string
 param subnetName string
 param eventHubSku string
+
+resource vault 'Microsoft.KeyVault/vaults@2022-07-01' existing = {
+  name: keyVaultName
+}
 
 resource eventHubNamespace 'Microsoft.EventHub/namespaces@2022-10-01-preview' = {
   name: eventHubNamespaceName
@@ -64,5 +69,29 @@ module privateEndpoint '../network/privateEndpoint.bicep' = {
     privateLinkServiceId: eventHubNamespace.id
     vnetName: vnetName
     location: location
+  }
+}
+
+resource sendConnection 'Microsoft.KeyVault/vaults/secrets@2022-07-01' = {
+  name: '${eventHubName}-Send'
+  parent: vault
+  properties: {
+    attributes: {
+      enabled: true
+    }
+    contentType: 'string'
+    value: send.listKeys().primaryConnectionString
+  }
+}
+
+resource listenConnection 'Microsoft.KeyVault/vaults/secrets@2022-07-01' = {
+  name: '${eventHubName}-Listen'
+  parent: vault
+  properties: {
+    attributes: {
+      enabled: true
+    }
+    contentType: 'string'
+    value: listen.listKeys().primaryConnectionString
   }
 }

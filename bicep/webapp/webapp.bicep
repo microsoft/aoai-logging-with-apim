@@ -1,9 +1,9 @@
 // Copyright (c) Microsoft. All rights reserved.
 
-param eventHubNamespaceName string
+param keyVaultName string
 param eventHubName string
 param applicationInsightsName string
-param cosmosDbName string
+param cosmosDbAccountName string
 param cosmosDbDatabaseName string
 param cosmosDbContainerName string
 param webAppName string
@@ -15,27 +15,22 @@ param subnetName string
 param privateEndpointSubnetName string
 param privateEndpointName string
 
+resource vault 'Microsoft.KeyVault/vaults@2022-07-01' existing = {
+  name: keyVaultName
+}
+
 resource cosmosDbAccount 'Microsoft.DocumentDB/databaseAccounts@2022-05-15' existing = {
-  name: toLower(cosmosDbName)
+  name: toLower(cosmosDbAccountName)
 }
 
-resource eventHubNamespace 'Microsoft.EventHub/namespaces@2022-10-01-preview' existing = {
-  name: eventHubNamespaceName
+resource sendConnection 'Microsoft.KeyVault/vaults/secrets@2022-07-01' existing = {
+  name: '${eventHubName}-Send'
+  parent: vault
 }
 
-resource eventHub 'Microsoft.EventHub/namespaces/eventhubs@2021-11-01' existing = {
-  parent: eventHubNamespace
-  name: eventHubName
-}
-
-resource send 'Microsoft.EventHub/namespaces/eventhubs/authorizationRules@2021-01-01-preview' = {
-  parent: eventHub
-  name: 'Send'
-  properties: {
-    rights: [
-      'Send'
-    ]
-  }
+resource cosmosDbKey 'Microsoft.KeyVault/vaults/secrets@2022-07-01' existing = {
+  name: toLower(cosmosDbAccountName)
+  parent: vault
 }
 
 resource applicationInsights 'Microsoft.Insights/components@2020-02-02' existing = {
@@ -77,16 +72,16 @@ resource webApp 'Microsoft.Web/sites@2022-03-01' = {
           value: applicationInsights.properties.ConnectionString
         }
         {
-            name: 'ApplicationInsightsAgent_EXTENSION_VERSION'
-            value: '~2'
+          name: 'ApplicationInsightsAgent_EXTENSION_VERSION'
+          value: '~2'
         }
         {
-            name: 'XDT_MicrosoftApplicationInsights_Mode'
-            value: 'default'
+          name: 'XDT_MicrosoftApplicationInsights_Mode'
+          value: 'default'
         }
         {
           name: 'EventHubConnectionString'
-          value: send.listKeys().primaryConnectionString
+          value: '@Microsoft.KeyVault(SecretUri=${sendConnection.properties.secretUri})'
         }
         {
           name: 'CosmosDbUrl'
@@ -102,7 +97,7 @@ resource webApp 'Microsoft.Web/sites@2022-03-01' = {
         }
         {
           name: 'CosmosDbKey'
-          value: cosmosDbAccount.listKeys().primaryMasterKey
+          value: '@Microsoft.KeyVault(SecretUri=${cosmosDbKey.properties.secretUri})'
         }
       ]
       phpVersion: 'OFF'
@@ -127,3 +122,5 @@ module privateEndpoint '../network/privateEndpoint.bicep' = {
     location: location
   }
 }
+
+output webAppIdentityId string = webApp.identity.principalId
