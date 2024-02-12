@@ -1,6 +1,6 @@
 ﻿// Copyright (c) Microsoft. All rights reserved.
 
-namespace LoggingWebApp.Models;
+namespace LogParser.Models;
 
 /// <summary>
 /// Temporary Log

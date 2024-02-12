@@ -1,0 +1,9 @@
+{
+  "profiles": {
+    "LogParserFunction": {
+      "commandName": "Project",
+      "commandLineArgs": "--port 7014",
+      "launchBrowser": false
+    }
+  }
+}

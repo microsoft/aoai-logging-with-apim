@@ -1,6 +1,6 @@
 // Copyright (c) Microsoft. All rights reserved.
 
-namespace ssetest.Controllers;
+namespace LoggingWebApp.Controllers;
 
 /// <summary>
 /// OpenAI controller that accepts any request and forwards it to the AOAI backend endpoint.

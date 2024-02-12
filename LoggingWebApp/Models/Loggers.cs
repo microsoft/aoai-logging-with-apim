@@ -1,6 +1,6 @@
 ﻿// Copyright (c) Microsoft. All rights reserved.
 
-namespace ssetest.Models;
+namespace LoggingWebApp.Models;
 
 /// <summary>
 /// Dictionary of Serilog logger.
