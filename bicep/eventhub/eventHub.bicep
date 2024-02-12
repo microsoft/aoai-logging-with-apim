@@ -42,6 +42,16 @@ resource send 'Microsoft.EventHub/namespaces/eventhubs/authorizationRules@2021-0
   }
 }
 
+resource listen 'Microsoft.EventHub/namespaces/eventhubs/authorizationRules@2021-01-01-preview' = {
+  parent: eventHub
+  name: 'Listen'
+  properties: {
+    rights: [
+      'Listen'
+    ]
+  }
+}
+
 module privateEndpoint '../network/privateEndpoint.bicep' = {
   name: '${eventHubNamespaceName}-privateEndpoint'
   params: {

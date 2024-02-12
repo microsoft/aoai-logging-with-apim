@@ -5,12 +5,14 @@ IConfiguration configuration = new ConfigurationBuilder()
                 .AddJsonFile("appsettings.json", optional: false)
                 .Build();
 
-CosmosClient client = new CosmosClientBuilder(
+CosmosClient cosmosClient = new CosmosClientBuilder(
         configuration["CosmosDbUrl"], 
         configuration["CosmosDbKey"])
         .WithConnectionModeGateway()
         .Build();
-
+Container container = cosmosClient.GetContainer(
+    configuration["CosmosDbDatabaseName"], 
+    configuration["CosmosDbContainerName"]);
 ContentSafetyClient contentSafetyClient = new(
        new Uri(configuration["ContentSafetyUrl"]!),
        new Azure.AzureKeyCredential(configuration["ContentSafetyKey"]!));
@@ -28,10 +30,6 @@ Log.Logger = new LoggerConfiguration()
     .WriteTo.ApplicationInsights(
       telemetryConfiguration,
       TelemetryConverter.Traces)
-    .WriteTo.AzCosmosDB(client, new AzCosmosDbSinkOptions()
-    {
-        DatabaseName = configuration["CosmosDbDatabaseName"]
-    })
     .CreateLogger();
 
 TikTokenService tikTokenService = new();
@@ -40,7 +38,8 @@ ContentSafetyService contentSafetyService = new(contentSafetyClient);
 DataProcessService eventHubDataProcessService = new(
     tikTokenService, 
     resultCacheService,
-    contentSafetyService);
+    contentSafetyService,
+    container);
 
 BlobContainerClient storageClient = new BlobContainerClient(
     configuration["BlobStorageConnectionStorage"],

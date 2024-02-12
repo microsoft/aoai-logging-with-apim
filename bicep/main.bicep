@@ -39,6 +39,21 @@ param eventHubSku string = 'Standard'
 @description('Azure API Management Name')
 param apiManagementServiceName string = '${projectName}-apim'
 
+@description('Cosmos Db Account Name')
+param cosmosDbAccountName string = '${projectName}-cosmosdb'
+
+@description('Cosmos Db Database Name')
+param cosmosDbDatabaseName string = 'Logs'
+
+@description('Cosmos Db Container Name')
+param cosmosDbContainerName string = 'TempLogs'
+
+@description('Loging Web App Name')
+param loggingWebAppName string = '${projectName}-logging-web'
+
+@description('Loging App Service Name')
+param loggingAppServiceName string = '${projectName}-logging-web-asp'
+
 @description('Public IP name for Azure API Management')
 param publicIpName string = '${apiManagementServiceName}-publicip'
 
@@ -75,6 +90,9 @@ param apimSubnetName string = '${projectName}-apim-subnet'
 @description('Virtual Network Subnet Name for Private Endpoints')
 param pepSubnetName string = '${projectName}-pep-subnet'
 
+@description('Virtual Network Subnet Name for Web App')
+param webAppSubnetName string = '${projectName}-webapp-subnet'
+
 @description('Network Security Group Name for APIM')
 param apimNsgName string = '${projectName}-apim-nsg'
 
@@ -90,11 +108,19 @@ param aoaiPrivateEndpointName string = '${projectName}-aoai-pep'
 @description('Private Endpoint Name for Event Hub Namespace')
 param eventHubPrivateEndpointName string = '${projectName}-ns-pep'
 
+@description('Private Endpoint Name for Cosmos Db')
+param cosmosDbPrivateEndpointName string = '${projectName}-cosmosdb-pep'
+
+@description('Private Endpoint Name for Web App')
+param webAppPrivateEndpointName string = '${projectName}-web-pep'
+
 var privateDnsZoneNames = [
   'privatelink.openai.azure.com'
   'privatelink.vaultcore.azure.net'
   'privatelink.servicebus.windows.net'
   'privatelink.monitor.azure.com'
+  'privatelink.documents.azure.com'
+  'privatelink.azurewebsites.net'
 ]
 
 //## Create Dns for Private Endpoint ##
@@ -113,12 +139,28 @@ module vnet './network/vnet.bicep' = {
     vnetName: vnetName
     apimSubnetName: apimSubnetName
     pepSubnetName: pepSubnetName
+    webAppSubnetName: webAppSubnetName
     apimNsgName: apimNsgName
     privateDnsZoneNames: privateDnsZoneNames
   }
   dependsOn: [
     dns
   ]
+}
+
+//## Create Cosmos Db ##
+module cosmosDb './db/cosmosDb.bicep' = {
+  name: 'cosmosDbDeployment'
+  params: {
+    location: location
+    accountName: cosmosDbAccountName
+    databaseName: cosmosDbDatabaseName
+    containerName: cosmosDbContainerName
+    primaryRegion: location
+    vnetName: vnetName
+    subnetName: pepSubnetName
+    privateEndpointName: cosmosDbPrivateEndpointName
+  }
 }
 
 //## Create Application Insights ##
@@ -191,6 +233,33 @@ module eventHub './/eventhub/eventHub.bicep' = {
   ]
 }
 
+module webApp './webapp/webapp.bicep' = {
+  name: 'webAppDeployment'
+  params: {
+    applicationInsightsName: applicationInsightsName
+    appServicePlanName: loggingAppServiceName
+    eventHubNamespaceName: eventHubNamespaceName
+    eventHubName: eventHubName
+    cosmosDbName: cosmosDbAccountName
+    cosmosDbDatabaseName: cosmosDbDatabaseName
+    cosmosDbContainerName: cosmosDbContainerName
+    sku: 'S1'
+    webAppName: loggingWebAppName
+    location: location
+    vnetName: vnetName
+    subnetName: webAppSubnetName
+    privateEndpointName: webAppPrivateEndpointName
+    privateEndpointSubnetName: pepSubnetName
+  }
+  dependsOn: [
+    vnet
+    dns
+    eventHub
+    applicationInsights
+    cosmosDb
+  ]
+}
+
 module publicIp './network/publicIp.bicep' = {
   name: 'publicIpDeployment'
   params: {
@@ -216,6 +285,7 @@ module apim './apim/apim.bicep' = {
   dependsOn: [
     vnet
     dns
+    webApp
   ]
 }
 
@@ -279,12 +349,14 @@ module apimBackend './apim/apimBackend.bicep' = {
      apiManagementServiceName: apiManagementServiceName
      aoaiName: aoaiName
      keyVaultName: keyVaultName
+     webAppName: loggingWebAppName
   }
   dependsOn: [
     aoai
     apim
     keyVault
     roles
+    webApp
   ]
 }
 
@@ -295,10 +367,12 @@ module apimApis './apim/apimApis.bicep' = {
     apiManagementServiceName: apiManagementServiceName
     aoaiName: aoaiName
     applicationInsightsName: applicationInsightsName
+    webAppName: loggingWebAppName
   }
   dependsOn: [
     apim
     aoai
     apimBackend
+    webApp
   ]
 }
