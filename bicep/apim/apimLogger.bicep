@@ -35,5 +35,6 @@ resource apimLogger 'Microsoft.ApiManagement/service/loggers@2023-03-01-preview'
       connectionString: eventHubNamespaceConnectionString
       name: eventHubNamespace.name
     }
+     isBuffered: false
   }
 }
