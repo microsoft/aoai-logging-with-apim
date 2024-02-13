@@ -20,7 +20,7 @@ Loggers loggers = new()
         .WriteTo.AzCosmosDB(
             client,
             databaseName: builder.Configuration["CosmosDbDatabaseName"],
-            collectionName: builder.Configuration["CosmosDbCollectionName"],
+            collectionName: builder.Configuration["CosmosDbContainerName"],
             partitionKeyProvider: new RequestIdPartitionKeyProvider(),
             partitionKey:"requestId")
         .CreateLogger()
@@ -42,7 +42,7 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.Services.AddHttpClient();
 builder.Services.AddHttpContextAccessor();
-builder.Services.AddSingleton(loggers);
+builder.Services.AddScoped<Loggers>(sp => loggers);
 
 WebApplication app = builder.Build();
 

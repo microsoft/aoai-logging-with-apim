@@ -47,12 +47,13 @@ resource send 'Microsoft.EventHub/namespaces/eventhubs/authorizationRules@2021-0
   }
 }
 
-resource listen 'Microsoft.EventHub/namespaces/eventhubs/authorizationRules@2021-01-01-preview' = {
+resource listenSend 'Microsoft.EventHub/namespaces/eventhubs/authorizationRules@2021-01-01-preview' = {
   parent: eventHub
-  name: 'Listen'
+  name: 'ListenSend'
   properties: {
     rights: [
       'Listen'
+      'Send'
     ]
   }
 }
@@ -85,13 +86,13 @@ resource sendConnection 'Microsoft.KeyVault/vaults/secrets@2022-07-01' = {
 }
 
 resource listenConnection 'Microsoft.KeyVault/vaults/secrets@2022-07-01' = {
-  name: '${eventHubName}-Listen'
+  name: '${eventHubName}-ListenSend'
   parent: vault
   properties: {
     attributes: {
       enabled: true
     }
     contentType: 'string'
-    value: listen.listKeys().primaryConnectionString
+    value: listenSend.listKeys().primaryConnectionString
   }
 }

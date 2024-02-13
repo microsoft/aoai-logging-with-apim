@@ -14,10 +14,10 @@ public class ChatCompletionRequest : Request
     public int? MaxTokens { get; set; }
 
     [JsonProperty("temperature")]
-    public int? Temperature { get; set; }
+    public double? Temperature { get; set; }
 
     [JsonProperty("top_p")]
-    public int? TopP { get; set; }
+    public double? TopP { get; set; }
 
     [JsonProperty("logit_bias")]
     public string? LogitBias { get; set; }
@@ -41,10 +41,10 @@ public class ChatCompletionRequest : Request
     public string? Stop { get; set; }
 
     [JsonProperty("presence_penalty")]
-    public int? PresencePenalty { get; set; }
+    public double? PresencePenalty { get; set; }
 
     [JsonProperty("frequency_penalty")]
-    public int? FrequencyPenalty { get; set; }
+    public double? FrequencyPenalty { get; set; }
 
     [JsonProperty("function_call")]
     public dynamic? FunctionCall { get; set; }

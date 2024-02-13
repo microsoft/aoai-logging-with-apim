@@ -2,7 +2,8 @@
 
 param keyVaultName string
 param apimIdentityId string
-param webAppIdentityId string
+param loggingWebAppIdentityId string
+param logParserFunctionIdentityId string
 
 resource vault 'Microsoft.KeyVault/vaults@2022-07-01' existing = {
   name: keyVaultName
@@ -25,11 +26,20 @@ resource apimRoleAssignment 'Microsoft.Authorization/roleAssignments@2020-04-01-
 
 resource webAppRoleAssignment 'Microsoft.Authorization/roleAssignments@2020-04-01-preview' = {
   scope: vault
-  name: guid(vault.id, webAppIdentityId,  roleDefinition.id)
+  name: guid(vault.id, loggingWebAppIdentityId,  roleDefinition.id)
   properties: {
     roleDefinitionId: roleDefinition.id
-    principalId: webAppIdentityId
+    principalId: loggingWebAppIdentityId
     principalType: 'ServicePrincipal'
   }
 }
 
+resource functionAppRoleAssignment 'Microsoft.Authorization/roleAssignments@2020-04-01-preview' = {
+  scope: vault
+  name: guid(vault.id, logParserFunctionIdentityId,  roleDefinition.id)
+  properties: {
+    roleDefinitionId: roleDefinition.id
+    principalId: logParserFunctionIdentityId
+    principalType: 'ServicePrincipal'
+  }
+}

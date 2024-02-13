@@ -43,7 +43,7 @@ public class OpenAI(IHttpClientFactory factory, IHttpContextAccessor accessor, L
         JObject headers = new();
         foreach (KeyValuePair<string, StringValues> header in request.Headers)
         {
-            if (header.Key is "Api-Key")
+            if (header.Key is "AOAI-Api-Key")
             {
                 httpClient.DefaultRequestHeaders.Add("api-key", header.Value.ToString());
                 continue;

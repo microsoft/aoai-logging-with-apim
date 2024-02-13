@@ -9,30 +9,28 @@ namespace LogParser.Services;
 /// <param name="resultCacheService">ResultCacheService</param>
 public class DataProcessService(
     TikTokenService tikTokenService, 
-    ResultCacheService resultCacheService,
     ContentSafetyService contentSafetyService,
     Container container)
 {
-    private readonly TikTokenService tikTokenService = tikTokenService;
-    private readonly ResultCacheService resultCacheService = resultCacheService;
-    private readonly ContentSafetyService contentSafetyService = contentSafetyService;
-    private readonly Container container = container;
+    private readonly TikTokenService _tikTokenService = tikTokenService;
+    private readonly ContentSafetyService _contentSafetyService = contentSafetyService;
+    private readonly Container _container = container;
 
     /// <summary>
     /// Process the data from Event Hub
     /// </summary>
     /// <param name="inputs"></param>
     /// <returns></returns>
-    public async Task ProcessEventAsync(string eventBody)
+    public async Task<AOAILog?> ProcessEventAsync(string eventBody)
     {
         if (string.IsNullOrEmpty(eventBody) || eventBody.Count() < 5)
         {
-            return;
+            return default;
         }
 
         string requestId = eventBody;// JToken.Parse(eventBody.Split("EventHubLog")[1])["RequestId"].ToString();
         QueryDefinition query = new(query: $"SELECT StringToObject(c.Properties.TempLog) AS TempLog FROM c WHERE c.requestId = '{requestId}'");
-        using FeedIterator<JToken> feed = container.GetItemQueryIterator<JToken>(
+        using FeedIterator<JToken> feed = _container.GetItemQueryIterator<JToken>(
             queryDefinition: query
         );
         List<JToken> items = new();
@@ -51,6 +49,12 @@ public class DataProcessService(
         Request? request = new();
         Response? response = new();
         StringBuilder sb = new();
+
+        if (!items.Any())
+        {
+            return default;
+        }
+
         foreach (JToken item in items)
         {
             if (item["TempLog"]["type"].ToString() == "Request")
@@ -64,7 +68,7 @@ public class DataProcessService(
                 elapsed = tempResponseLog.Headers!["Elasped"];
                 statusCode = tempResponseLog.Headers!["Status-Code"];
                 statusReason = tempResponseLog.Headers!["Status-Reason"];
-                response = await item["TempLog"].ToString().GetResponse(request!, tikTokenService, contentSafetyService);
+                response = await item["TempLog"].ToString().GetResponse(request!, _tikTokenService, _contentSafetyService);
             }
             else if (item["TempLog"]["type"].ToString() == "StreamResponse")
             {
@@ -76,11 +80,12 @@ public class DataProcessService(
             }
         }
 
+        Console.WriteLine($"records: {items.Count}");
         if(sb.Length > 0)
         {
             JObject token = new();
             token["response"] = sb.ToString();
-            response = await token.ToString().GetResponse(request!, tikTokenService, contentSafetyService);
+            response = await token.ToString().GetResponse(request!, _tikTokenService, _contentSafetyService);
         }
 
         AOAILog aoaiLog = new()
@@ -106,13 +111,8 @@ public class DataProcessService(
             Url = tempRequestLog.Headers!["Request-Url"]
         };
 
-        // Send the log to WriteTo destinations.
-        // As Serilog serializer cannot serialize dynamic type very well, we serialize the result here.
-        // In Application Insights, you don't need to parse but for cosmos Db, you need to parse the json.
-        Log.Logger.Debug("{@AOAILog}", JsonConvert.SerializeObject(aoaiLog, new JsonSerializerSettings() { NullValueHandling = NullValueHandling.Ignore }));
+        var res = await _container.DeleteAllItemsByPartitionKeyStreamAsync(new PartitionKey(requestId));
 
-        var res = await container.DeleteAllItemsByPartitionKeyStreamAsync(new PartitionKey(requestId));
-
-        return;
+        return aoaiLog;
     }
 }

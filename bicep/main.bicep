@@ -48,11 +48,20 @@ param cosmosDbDatabaseName string = 'Logs'
 @description('Cosmos Db Container Name')
 param cosmosDbContainerName string = 'TempLogs'
 
-@description('Loging Web App Name')
+@description('Content Safety Account Name')
+param contentSafetyAccountName string = '${projectName}-content-safety'
+
+@description('Logging Web App Name')
 param loggingWebAppName string = '${projectName}-logging-web'
 
-@description('Loging App Service Name')
-param loggingAppServiceName string = '${projectName}-logging-web-asp'
+@description('Log Parser Function App Name')
+param logParserFunctionName string = '${projectName}-logparser-function'
+
+@description('Log Parser Function Storage Account Name')
+param functionStorageAccountName string = '${projectName}logparserstorage'
+
+@description('App Service Name for Logging and Log Parser')
+param appServiceName string = '${projectName}-asp'
 
 @description('Public IP name for Azure API Management')
 param publicIpName string = '${apiManagementServiceName}-publicip'
@@ -111,8 +120,14 @@ param eventHubPrivateEndpointName string = '${projectName}-ns-pep'
 @description('Private Endpoint Name for Cosmos Db')
 param cosmosDbPrivateEndpointName string = '${projectName}-cosmosdb-pep'
 
-@description('Private Endpoint Name for Web App')
-param webAppPrivateEndpointName string = '${projectName}-web-pep'
+@description('Private Endpoint Name for Logging Web App')
+param loggingWebAppPrivateEndpointName string = '${projectName}-logging-web-pep'
+
+@description('Private Endpoint Name for Log Parser Function App')
+param logParserFunctionPrivateEndpointName string = '${projectName}-logparser-function-pep'
+
+@description('Private Endpoint Name for Content Safety')
+param contentSafetyPrivateEndpointName string = '${projectName}-content-safety-pep'
 
 var privateDnsZoneNames = [
   'privatelink.openai.azure.com'
@@ -121,6 +136,7 @@ var privateDnsZoneNames = [
   'privatelink.monitor.azure.com'
   'privatelink.documents.azure.com'
   'privatelink.azurewebsites.net'
+  'privatelink.cognitiveservices.azure.com'
 ]
 
 //## Create Dns for Private Endpoint ##
@@ -144,6 +160,23 @@ module vnet './network/vnet.bicep' = {
     privateDnsZoneNames: privateDnsZoneNames
   }
   dependsOn: [
+    dns
+  ]
+}
+
+//## Create Key Vault that stores Keys ##
+module keyVault './security/keyVault.bicep' = {
+  name: 'keyVaultDeployment'
+  params: {
+    location: location
+    keyVaultName: keyVaultName
+    skuName: keyVaultSku
+    keyVaultPrivateEndpointName: keyVaultPrivateEndpointName
+    vnetName: vnetName
+    subnetName: pepSubnetName
+  }
+  dependsOn: [
+    vnet
     dns
   ]
 }
@@ -173,6 +206,7 @@ module cosmosDb './db/cosmosDb.bicep' = {
 module applicationInsights './monitoring/applicationInsights.bicep' = {
   name: 'applicationInsightsDeployment'
   params: {
+    keyVaultName: keyVaultName
     location: location
     applicationInsightsName: applicationInsightsName
     workspaceName: workspaceName
@@ -183,23 +217,25 @@ module applicationInsights './monitoring/applicationInsights.bicep' = {
   dependsOn: [
     vnet
     dns
+    keyVault
   ]
 }
 
-//## Create Key Vault that stores Azure Open AI Key ##
-module keyVault './security/keyVault.bicep' = {
-  name: 'keyVaultDeployment'
+//## Create Application Insights ##
+module contentsafety './contentsafety/contentSafety.bicep' = {
+  name: 'contentsafetyDeployment'
   params: {
-    location: location
     keyVaultName: keyVaultName
-    skuName: keyVaultSku
-    keyVaultPrivateEndpointName: keyVaultPrivateEndpointName
+    location: location
+    contentSafetyAccountName: contentSafetyAccountName
+    privateEndpointName: contentSafetyPrivateEndpointName
     vnetName: vnetName
     subnetName: pepSubnetName
   }
   dependsOn: [
     vnet
     dns
+    keyVault
   ]
 }
 
@@ -244,19 +280,24 @@ module webApp './webapp/webapp.bicep' = {
   name: 'webAppDeployment'
   params: {
     applicationInsightsName: applicationInsightsName
-    appServicePlanName: loggingAppServiceName
+    appServicePlanName: appServiceName
     eventHubName: eventHubName
     cosmosDbAccountName: cosmosDbAccountName
     cosmosDbDatabaseName: cosmosDbDatabaseName
     cosmosDbContainerName: cosmosDbContainerName
     sku: 'S1'
-    webAppName: loggingWebAppName
+    loggingWebAppName: loggingWebAppName
+    logParserFunctionName: logParserFunctionName
     location: location
     vnetName: vnetName
     subnetName: webAppSubnetName
-    privateEndpointName: webAppPrivateEndpointName
+    loggingWebAppPrivateEndpointName: loggingWebAppPrivateEndpointName
+    logParserFunctionPrivateEndpointName: logParserFunctionPrivateEndpointName
     privateEndpointSubnetName: pepSubnetName
     keyVaultName: keyVaultName
+    contentSafetyAccountName: contentSafetyAccountName
+    functionStorageAccountName: functionStorageAccountName
+    functionStorageAccountType: 'Standard_LRS'
   }
   dependsOn: [
     vnet
@@ -264,6 +305,8 @@ module webApp './webapp/webapp.bicep' = {
     eventHub
     applicationInsights
     cosmosDb
+    keyVault
+    contentsafety
   ]
 }
 
@@ -301,7 +344,8 @@ module roles './security/roles.bicep' = {
   name: 'rolesDeployment'
   params: {
      apimIdentityId: apim.outputs.apimIdentityId
-     webAppIdentityId: webApp.outputs.webAppIdentityId
+     loggingWebAppIdentityId: webApp.outputs.loggingWebAppIdentityId
+     logParserFunctionIdentityId: webApp.outputs.logParserFunctionIdentityId
      keyVaultName: keyVaultName
   }
   dependsOn: [

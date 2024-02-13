@@ -1,6 +1,6 @@
 <mxfile host="65bd71144e">
     <diagram name="cognitive-search-for-ai-enrichment" id="Page-1">
-        <mxGraphModel dx="1306" dy="747" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
+        <mxGraphModel dx="1136" dy="747" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
             <root>
                 <mxCell id="0"/>
                 <mxCell id="1" parent="0"/>
@@ -11,7 +11,7 @@
                     <mxGeometry relative="1" as="geometry"/>
                 </mxCell>
                 <mxCell id="qxArfmMU_z32NaRqhNJx-265" value="Log Store" style="rounded=1;whiteSpace=wrap;html=1;verticalAlign=top;arcSize=7;" parent="1" vertex="1">
-                    <mxGeometry x="561" y="417" width="100" height="113" as="geometry"/>
+                    <mxGeometry x="570" y="381.5" width="100" height="113" as="geometry"/>
                 </mxCell>
                 <UserObject label="" tags="Media Common_Icons Web_Site_Map_Shapes Container Connector" id="245">
                     <mxCell parent="1" vertex="1" visible="0">
@@ -24,17 +24,17 @@
                 <mxCell id="qxArfmMU_z32NaRqhNJx-245" value="" style="image;aspect=fixed;html=1;points=[];align=center;fontSize=12;image=img/lib/azure2/app_services/API_Management_Services.svg;" parent="1" vertex="1">
                     <mxGeometry x="50" y="200" width="65" height="60" as="geometry"/>
                 </mxCell>
-                <mxCell id="249" style="edgeStyle=none;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.514;entryY=-0.16;entryDx=0;entryDy=0;entryPerimeter=0;" edge="1" parent="1" source="qxArfmMU_z32NaRqhNJx-249" target="248">
+                <mxCell id="249" style="edgeStyle=none;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.514;entryY=-0.16;entryDx=0;entryDy=0;entryPerimeter=0;" parent="1" source="qxArfmMU_z32NaRqhNJx-249" target="248" edge="1">
                     <mxGeometry relative="1" as="geometry"/>
                 </mxCell>
-                <mxCell id="251" value="" style="edgeStyle=none;html=1;" edge="1" parent="1" source="qxArfmMU_z32NaRqhNJx-249" target="qxArfmMU_z32NaRqhNJx-262">
+                <mxCell id="251" value="" style="edgeStyle=none;html=1;" parent="1" source="qxArfmMU_z32NaRqhNJx-249" target="qxArfmMU_z32NaRqhNJx-262" edge="1">
                     <mxGeometry relative="1" as="geometry"/>
                 </mxCell>
                 <mxCell id="qxArfmMU_z32NaRqhNJx-249" value="Policy" style="shape=process;whiteSpace=wrap;html=1;backgroundOutline=1;" parent="1" vertex="1">
                     <mxGeometry x="143" y="199" width="120" height="60" as="geometry"/>
                 </mxCell>
                 <mxCell id="qxArfmMU_z32NaRqhNJx-252" value="" style="group" parent="1" vertex="1" connectable="0">
-                    <mxGeometry x="450" y="123" width="365" height="250" as="geometry"/>
+                    <mxGeometry x="450" y="123" width="365" height="282" as="geometry"/>
                 </mxCell>
                 <mxCell id="qxArfmMU_z32NaRqhNJx-251" value="Open AI accounts" style="rounded=1;whiteSpace=wrap;html=1;verticalAlign=top;arcSize=7;" parent="qxArfmMU_z32NaRqhNJx-252" vertex="1">
                     <mxGeometry width="365" height="210" as="geometry"/>
@@ -48,33 +48,33 @@
                 <mxCell id="qxArfmMU_z32NaRqhNJx-248" value="Azure Open AI&lt;br&gt;Account C&lt;br&gt;text-embedding-ada-002" style="rounded=0;whiteSpace=wrap;html=1;" parent="qxArfmMU_z32NaRqhNJx-252" vertex="1">
                     <mxGeometry x="62.963776223776236" y="140" width="283.32167832167835" height="60" as="geometry"/>
                 </mxCell>
-                <mxCell id="257" value="" style="edgeStyle=none;html=1;entryX=0;entryY=0.75;entryDx=0;entryDy=0;" edge="1" parent="1" source="qxArfmMU_z32NaRqhNJx-254" target="qxArfmMU_z32NaRqhNJx-257">
-                    <mxGeometry relative="1" as="geometry"/>
+                <mxCell id="257" value="" style="edgeStyle=none;html=1;entryX=0.461;entryY=0.992;entryDx=0;entryDy=0;entryPerimeter=0;" parent="1" source="qxArfmMU_z32NaRqhNJx-254" target="262" edge="1">
+                    <mxGeometry relative="1" as="geometry">
+                        <mxPoint x="390" y="492" as="targetPoint"/>
+                        <Array as="points">
+                            <mxPoint x="447" y="490"/>
+                        </Array>
+                    </mxGeometry>
                 </mxCell>
                 <mxCell id="qxArfmMU_z32NaRqhNJx-254" value="Notification" style="image;sketch=0;aspect=fixed;html=1;points=[];align=center;fontSize=12;image=img/lib/mscae/Event_Hubs.svg;" parent="1" vertex="1">
                     <mxGeometry x="271" y="466" width="48" height="50" as="geometry"/>
                 </mxCell>
-                <mxCell id="qxArfmMU_z32NaRqhNJx-266" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" parent="1" source="qxArfmMU_z32NaRqhNJx-257" target="qxArfmMU_z32NaRqhNJx-265" edge="1">
-                    <mxGeometry relative="1" as="geometry"/>
-                </mxCell>
-                <mxCell id="256" value="" style="edgeStyle=none;html=1;entryX=0.99;entryY=0.455;entryDx=0;entryDy=0;entryPerimeter=0;exitX=0.5;exitY=0;exitDx=0;exitDy=0;" edge="1" parent="1" source="qxArfmMU_z32NaRqhNJx-257" target="qxArfmMU_z32NaRqhNJx-259">
+                <mxCell id="256" value="" style="edgeStyle=none;html=1;entryX=0.99;entryY=0.455;entryDx=0;entryDy=0;entryPerimeter=0;" parent="1" source="262" target="qxArfmMU_z32NaRqhNJx-259" edge="1">
                     <mxGeometry relative="1" as="geometry">
                         <Array as="points">
                             <mxPoint x="450" y="398"/>
                         </Array>
+                        <mxPoint x="450" y="438" as="sourcePoint"/>
                     </mxGeometry>
                 </mxCell>
-                <mxCell id="qxArfmMU_z32NaRqhNJx-257" value="Log Parser" style="shape=process;whiteSpace=wrap;html=1;backgroundOutline=1;" parent="1" vertex="1">
-                    <mxGeometry x="390" y="438" width="120" height="72" as="geometry"/>
-                </mxCell>
                 <mxCell id="qxArfmMU_z32NaRqhNJx-258" value="" style="image;sketch=0;aspect=fixed;html=1;points=[];align=center;fontSize=12;image=img/lib/mscae/Application_Insights.svg;" parent="1" vertex="1">
-                    <mxGeometry x="595" y="458" width="32" height="50" as="geometry"/>
+                    <mxGeometry x="604" y="422.5" width="32" height="50" as="geometry"/>
                 </mxCell>
                 <mxCell id="qxArfmMU_z32NaRqhNJx-259" value="Temporary Logs" style="image;aspect=fixed;html=1;points=[];align=center;fontSize=12;image=img/lib/azure2/databases/Azure_Cosmos_DB.svg;" parent="1" vertex="1">
                     <mxGeometry x="263" y="369" width="64" height="64" as="geometry"/>
                 </mxCell>
                 <mxCell id="qxArfmMU_z32NaRqhNJx-260" value="" style="verticalLabelPosition=bottom;sketch=0;aspect=fixed;html=1;verticalAlign=top;strokeColor=none;align=center;outlineConnect=0;shape=mxgraph.citrix.reporting;" parent="1" vertex="1">
-                    <mxGeometry x="730" y="439" width="61.5" height="69" as="geometry"/>
+                    <mxGeometry x="739" y="403.5" width="61.5" height="69" as="geometry"/>
                 </mxCell>
                 <mxCell id="qxArfmMU_z32NaRqhNJx-261" value="subscription keys" style="image;aspect=fixed;html=1;points=[];align=center;fontSize=12;image=img/lib/azure2/security/Key_Vaults.svg;" parent="1" vertex="1">
                     <mxGeometry x="57" y="259" width="30" height="30" as="geometry"/>
@@ -82,28 +82,20 @@
                 <mxCell id="qxArfmMU_z32NaRqhNJx-262" value="Key Vaults" style="image;aspect=fixed;html=1;points=[];align=center;fontSize=12;image=img/lib/azure2/security/Key_Vaults.svg;" parent="1" vertex="1">
                     <mxGeometry x="178" y="100" width="50" height="50" as="geometry"/>
                 </mxCell>
-                <mxCell id="qxArfmMU_z32NaRqhNJx-271" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" parent="1" target="qxArfmMU_z32NaRqhNJx-273" edge="1" source="qxArfmMU_z32NaRqhNJx-257">
-                    <mxGeometry relative="1" as="geometry">
-                        <mxPoint x="430" y="498" as="sourcePoint"/>
-                    </mxGeometry>
-                </mxCell>
                 <mxCell id="qxArfmMU_z32NaRqhNJx-272" value="" style="html=1;verticalLabelPosition=bottom;align=center;labelBackgroundColor=#ffffff;verticalAlign=top;strokeWidth=2;strokeColor=#0080F0;shadow=0;dashed=0;shape=mxgraph.ios7.icons.locked;" parent="1" vertex="1">
-                    <mxGeometry x="360" y="537.5" width="24" height="30" as="geometry"/>
+                    <mxGeometry x="375" y="525" width="24" height="30" as="geometry"/>
                 </mxCell>
-                <mxCell id="qxArfmMU_z32NaRqhNJx-273" value="Content Safety" style="rounded=0;whiteSpace=wrap;html=1;" parent="1" vertex="1">
-                    <mxGeometry x="390" y="535" width="120" height="35" as="geometry"/>
-                </mxCell>
-                <mxCell id="253" value="" style="edgeStyle=none;html=1;entryX=0.076;entryY=0.61;entryDx=0;entryDy=0;entryPerimeter=0;" edge="1" parent="1" source="248" target="qxArfmMU_z32NaRqhNJx-259">
+                <mxCell id="253" value="" style="edgeStyle=none;html=1;entryX=0.076;entryY=0.61;entryDx=0;entryDy=0;entryPerimeter=0;" parent="1" source="248" target="qxArfmMU_z32NaRqhNJx-259" edge="1">
                     <mxGeometry relative="1" as="geometry">
                         <Array as="points">
                             <mxPoint x="203" y="408"/>
                         </Array>
                     </mxGeometry>
                 </mxCell>
-                <mxCell id="248" value="" style="sketch=0;aspect=fixed;html=1;points=[];align=center;image;fontSize=12;image=img/lib/mscae/App_Services.svg;" vertex="1" parent="1">
+                <mxCell id="248" value="" style="sketch=0;aspect=fixed;html=1;points=[];align=center;image;fontSize=12;image=img/lib/mscae/App_Services.svg;" parent="1" vertex="1">
                     <mxGeometry x="178" y="305" width="50" height="50" as="geometry"/>
                 </mxCell>
-                <mxCell id="252" value="" style="endArrow=classic;startArrow=classic;html=1;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="248" target="qxArfmMU_z32NaRqhNJx-251">
+                <mxCell id="252" value="" style="endArrow=classic;startArrow=classic;html=1;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" parent="1" source="248" target="qxArfmMU_z32NaRqhNJx-251" edge="1">
                     <mxGeometry width="50" height="50" relative="1" as="geometry">
                         <mxPoint x="500" y="390" as="sourcePoint"/>
                         <mxPoint x="550" y="340" as="targetPoint"/>
@@ -113,20 +105,43 @@
                         </Array>
                     </mxGeometry>
                 </mxCell>
-                <mxCell id="254" value="" style="edgeStyle=none;html=1;entryX=-0.014;entryY=0.568;entryDx=0;entryDy=0;entryPerimeter=0;" edge="1" parent="1" source="248" target="qxArfmMU_z32NaRqhNJx-254">
+                <mxCell id="254" value="" style="edgeStyle=none;html=1;entryX=-0.014;entryY=0.568;entryDx=0;entryDy=0;entryPerimeter=0;" parent="1" source="248" target="qxArfmMU_z32NaRqhNJx-254" edge="1">
                     <mxGeometry relative="1" as="geometry">
                         <mxPoint x="200" y="360" as="sourcePoint"/>
                         <mxPoint x="254.86399999999992" y="447.03999999999996" as="targetPoint"/>
                         <Array as="points">
-                            <mxPoint x="200" y="494"/>
+                            <mxPoint x="203" y="494"/>
                         </Array>
                     </mxGeometry>
                 </mxCell>
-                <mxCell id="258" value="&amp;nbsp;request/response" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" vertex="1" parent="1">
+                <mxCell id="258" value="&amp;nbsp;request/response" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" parent="1" vertex="1">
                     <mxGeometry x="255" y="303" width="99" height="30" as="geometry"/>
                 </mxCell>
-                <mxCell id="261" value="Logger" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" vertex="1" parent="1">
+                <mxCell id="261" value="Logging" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" parent="1" vertex="1">
                     <mxGeometry x="130" y="339" width="60" height="30" as="geometry"/>
+                </mxCell>
+                <mxCell id="262" value="" style="aspect=fixed;html=1;points=[];align=center;image;fontSize=12;image=img/lib/azure2/iot/Function_Apps.svg;" vertex="1" parent="1">
+                    <mxGeometry x="416" y="410" width="68" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="qxArfmMU_z32NaRqhNJx-273" value="Content Safety" style="rounded=0;whiteSpace=wrap;html=1;" parent="1" vertex="1">
+                    <mxGeometry x="405.00000000000006" y="520" width="120" height="35" as="geometry"/>
+                </mxCell>
+                <mxCell id="266" value="" style="edgeStyle=none;html=1;entryX=0.01;entryY=0.53;entryDx=0;entryDy=0;entryPerimeter=0;exitX=0.99;exitY=0.51;exitDx=0;exitDy=0;exitPerimeter=0;" edge="1" parent="1" source="262" target="qxArfmMU_z32NaRqhNJx-265">
+                    <mxGeometry relative="1" as="geometry">
+                        <mxPoint x="329" y="500.8421052631579" as="sourcePoint"/>
+                        <mxPoint x="457.34799999999996" y="479.52" as="targetPoint"/>
+                        <Array as="points"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="267" value="" style="edgeStyle=none;html=1;entryX=0.467;entryY=-0.011;entryDx=0;entryDy=0;entryPerimeter=0;exitX=0.657;exitY=1.005;exitDx=0;exitDy=0;exitPerimeter=0;" edge="1" parent="1" source="262" target="qxArfmMU_z32NaRqhNJx-273">
+                    <mxGeometry relative="1" as="geometry">
+                        <mxPoint x="493.32000000000005" y="450.6" as="sourcePoint"/>
+                        <mxPoint x="543" y="450.89" as="targetPoint"/>
+                        <Array as="points"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="268" value="Log Parser" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" vertex="1" parent="1">
+                    <mxGeometry x="470" y="460" width="70" height="30" as="geometry"/>
                 </mxCell>
             </root>
         </mxGraphModel>
