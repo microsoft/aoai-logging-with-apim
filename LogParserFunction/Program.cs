@@ -28,7 +28,8 @@ IHost host = new HostBuilder()
         services.AddApplicationInsightsTelemetryWorkerService();
         services.ConfigureFunctionsApplicationInsights();
         services.AddTransient(sp => eventHubDataProcessService);
-        services.AddTransient(sp => new EventHubProducerClient(Environment.GetEnvironmentVariable("EventHubConnectionString")));
+        services.AddTransient(sp => new EventHubProducerClient(
+            Environment.GetEnvironmentVariable("EventHubConnectionString")));
     })
     .Build();
 

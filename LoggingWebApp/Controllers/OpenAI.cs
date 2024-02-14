@@ -138,6 +138,7 @@ public class OpenAI(IHttpClientFactory factory, IHttpContextAccessor accessor, C
                 new PartitionKey(requestId));
         }
         
+        //TODO: Reserach how to do this async.
         // Once all logging complete for the request, notifiy to EventHub.
         EventDataBatch eventBatch = await eventHubProducerClient.CreateBatchAsync();
         eventBatch.TryAdd(new Azure.Messaging.EventHubs.EventData(requestId));
