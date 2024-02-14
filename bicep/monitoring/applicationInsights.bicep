@@ -90,7 +90,7 @@ resource appInsightsScopedResource 'Microsoft.Insights/privateLinkScopes/scopedR
 }
 
 resource applicationInsightsConnectionString 'Microsoft.KeyVault/vaults/secrets@2022-07-01' = {
-  name: applicationInsightsName
+  name: '${applicationInsightsName}-ConnectionString'
   parent: vault
   properties: {
     attributes: {
@@ -98,5 +98,17 @@ resource applicationInsightsConnectionString 'Microsoft.KeyVault/vaults/secrets@
     }
     contentType: 'string'
     value: applicationInsights.properties.ConnectionString
+  }
+}
+
+resource applicationInsightsKey 'Microsoft.KeyVault/vaults/secrets@2022-07-01' = {
+  name: applicationInsightsName
+  parent: vault
+  properties: {
+    attributes: {
+      enabled: true
+    }
+    contentType: 'string'
+    value: applicationInsights.properties.InstrumentationKey
   }
 }

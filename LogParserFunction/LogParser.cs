@@ -32,7 +32,7 @@ public class LogParser(
         }
         catch (Exception ex)
         {
-            _logger.LogError($"Failed with error: {ex.Message}. The {input} is push back to the event hub again.");
+            _logger.LogWarning($"Failed with error: {ex.Message}. The {input} is push back to the event hub again.");
             EventDataBatch eventBatch = await _eventHubProducerClient.CreateBatchAsync();
             eventBatch.TryAdd(new Azure.Messaging.EventHubs.EventData(input));
             await _eventHubProducerClient.SendAsync(eventBatch);

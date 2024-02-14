@@ -1,5 +1,7 @@
 // Copyright (c) Microsoft. All rights reserved.
 
+using Azure.Messaging.EventHubs.Producer;
+
 namespace LoggingWebApp.Controllers;
 
 /// <summary>
@@ -8,14 +10,15 @@ namespace LoggingWebApp.Controllers;
 /// </summary>
 /// <param name="factory">IHttpClientFactory</param>
 /// <param name="accessor">IHttpContextAccessor</param>
-/// <param name="loggers">Serilog Loggers</param>
+/// <param name="container">Cosmos DB Container</param>
+/// <param name="eventHubProducerClient">EventHubProducerClient</param>
 [ApiController]
 [Route("[controller]")]
-public class OpenAI(IHttpClientFactory factory, IHttpContextAccessor accessor, Loggers loggers) : ControllerBase
+public class OpenAI(IHttpClientFactory factory, IHttpContextAccessor accessor, Container container, EventHubProducerClient eventHubProducerClient) : ControllerBase
 {
     private readonly IHttpContextAccessor accessor = accessor;
-    private readonly ILogger azCosmosDBLogger = loggers["AzCosmosDB"];
-    private readonly ILogger eventHubLogger = loggers["EventHub"];
+    private readonly Container container = container;
+    private readonly EventHubProducerClient eventHubProducerClient = eventHubProducerClient;
     private readonly HttpClient httpClient = factory.CreateClient();
     private readonly string LINE_END = $"{Environment.NewLine}{Environment.NewLine}";
 
@@ -38,6 +41,7 @@ public class OpenAI(IHttpClientFactory factory, IHttpContextAccessor accessor, L
         
         // Default action result is Empty for SSE.
         IActionResult actionResult = new EmptyResult();
+        List<TempLog> tempLogs = new List<TempLog>();
 
         // Log the request
         JObject headers = new();
@@ -46,13 +50,16 @@ public class OpenAI(IHttpClientFactory factory, IHttpContextAccessor accessor, L
             if (header.Key is "AOAI-Api-Key")
             {
                 httpClient.DefaultRequestHeaders.Add("api-key", header.Value.ToString());
-                continue;
+                continue; // Do not log key
             }
             else if (header.Key is "Backend-Url")
             {
                 httpClient.BaseAddress = new Uri(header.Value.ToString());
             }
-
+            else if (header.Key is "api-key")
+            {
+                continue;  // Do not log key
+            }
             headers[header.Key] = string.Join(",", header.Value!);
         }
         headers["Request-Url"] = $"{request.Path}{request.QueryString}";
@@ -63,8 +70,8 @@ public class OpenAI(IHttpClientFactory factory, IHttpContextAccessor accessor, L
             Request = body,
             RequestUrl = $"{request.Path}{request.QueryString}",
         };
-        ILogger logger = azCosmosDBLogger.ForContext(nameof(tempRequestLog.RequestId), tempRequestLog.RequestId);
-        logger.Information("{@TempLog}", JsonConvert.SerializeObject(tempRequestLog, new JsonSerializerSettings() { NullValueHandling = NullValueHandling.Ignore }));
+
+        tempLogs.Add(tempRequestLog);
 
         // Foward the request to AOAI endpoint
         HttpRequestMessage requestMessage = new(HttpMethod.Post, path + Request.QueryString);
@@ -105,7 +112,7 @@ public class OpenAI(IHttpClientFactory factory, IHttpContextAccessor accessor, L
                     // Send SSE with LINE_END
                     await response.WriteAsync($"{message}{LINE_END}");
                     await response.Body.FlushAsync();
-                    logger.Information("{@TempLog}", JsonConvert.SerializeObject(tempStreamResponseLog, new JsonSerializerSettings() { NullValueHandling = NullValueHandling.Ignore }));
+                    tempLogs.Add(tempStreamResponseLog);
                 }
             }
         }
@@ -120,13 +127,22 @@ public class OpenAI(IHttpClientFactory factory, IHttpContextAccessor accessor, L
                 RequestId = requestId,
                 Response = responseContent,
             };
-            logger.Information("{@TempLog}", JsonConvert.SerializeObject(tempResponseLog, new JsonSerializerSettings() { NullValueHandling = NullValueHandling.Ignore }));
+            tempLogs.Add(tempResponseLog);
 
             actionResult = Ok(responseContent);
         }
-
+                
+        foreach(TempLog tempLog in tempLogs)
+        {
+            await container.CreateItemAsync(tempLog,
+                new PartitionKey(requestId));
+        }
+        
         // Once all logging complete for the request, notifiy to EventHub.
-        eventHubLogger.Information(requestId);
+        EventDataBatch eventBatch = await eventHubProducerClient.CreateBatchAsync();
+        eventBatch.TryAdd(new Azure.Messaging.EventHubs.EventData(requestId));
+        await eventHubProducerClient.SendAsync(eventBatch);
+        
         return actionResult;
     }
 }

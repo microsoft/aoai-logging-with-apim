@@ -29,7 +29,7 @@ public class DataProcessService(
         }
 
         string requestId = eventBody;// JToken.Parse(eventBody.Split("EventHubLog")[1])["RequestId"].ToString();
-        QueryDefinition query = new(query: $"SELECT StringToObject(c.Properties.TempLog) AS TempLog FROM c WHERE c.requestId = '{requestId}'");
+        QueryDefinition query = new(query: $"SELECT * FROM c WHERE c.requestId = '{requestId}'");
         using FeedIterator<JToken> feed = _container.GetItemQueryIterator<JToken>(
             queryDefinition: query
         );
@@ -57,26 +57,26 @@ public class DataProcessService(
 
         foreach (JToken item in items)
         {
-            if (item["TempLog"]["type"].ToString() == "Request")
+            if (item["type"].ToString() == "Request")
             {
-                tempRequestLog = JsonConvert.DeserializeObject<TempRequestLog>(item["TempLog"].ToString());
-                request = item["TempLog"].ToString().GetRequest();
+                tempRequestLog = JsonConvert.DeserializeObject<TempRequestLog>(item.ToString());
+                request = item.ToString().GetRequest();
             }
-            else if (item["TempLog"]["type"].ToString() == "Response")
+            else if (item["type"].ToString() == "Response")
             {
-                TempResponseLog tempResponseLog = JsonConvert.DeserializeObject<TempResponseLog>(item["TempLog"].ToString());
+                TempResponseLog tempResponseLog = JsonConvert.DeserializeObject<TempResponseLog>(item.ToString());
                 elapsed = tempResponseLog.Headers!["Elasped"];
                 statusCode = tempResponseLog.Headers!["Status-Code"];
                 statusReason = tempResponseLog.Headers!["Status-Reason"];
-                response = await item["TempLog"].ToString().GetResponse(request!, _tikTokenService, _contentSafetyService);
+                response = await item.ToString().GetResponse(request!, _tikTokenService, _contentSafetyService);
             }
-            else if (item["TempLog"]["type"].ToString() == "StreamResponse")
+            else if (item["type"].ToString() == "StreamResponse")
             {
-                TempStreamResponseLog tempStreamResponseLog = JsonConvert.DeserializeObject<TempStreamResponseLog>(item["TempLog"].ToString());
+                TempStreamResponseLog tempStreamResponseLog = JsonConvert.DeserializeObject<TempStreamResponseLog>(item.ToString());
                 elapsed = tempStreamResponseLog.Headers!["Elasped"];
                 statusCode = tempStreamResponseLog.Headers!["Status-Code"];
                 statusReason = tempStreamResponseLog.Headers!["Status-Reason"];
-                sb.Append(item["TempLog"]["response"].ToString()+ "\n\n");
+                sb.Append(item["response"].ToString()+ "\n\n");
             }
         }
 

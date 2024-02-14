@@ -7,6 +7,9 @@ namespace LoggingWebApp.Models;
 /// </summary>
 public class TempLog
 {
+    [JsonProperty("id")]
+    public Guid Id { get; } = Guid.NewGuid();
+
     [JsonProperty("type")]
     public virtual string Type { get; } = string.Empty;
 

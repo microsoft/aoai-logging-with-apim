@@ -52,20 +52,14 @@ resource contentSafetyKey 'Microsoft.KeyVault/vaults/secrets@2022-07-01' existin
   parent: vault
 }
 
-resource applicationInsights 'Microsoft.Insights/components@2020-02-02' existing = {
-  name: applicationInsightsName
+resource applicationInsightsConnectionString 'Microsoft.KeyVault/vaults/secrets@2022-07-01' existing = {
+  name: '${applicationInsightsName}-ConnectionString'
+  parent: vault
 }
 
-resource applicationInsightsConnectionString 'Microsoft.KeyVault/vaults/secrets@2022-07-01' = {
+resource applicationInsightsKey 'Microsoft.KeyVault/vaults/secrets@2022-07-01' existing = {
   name: applicationInsightsName
   parent: vault
-  properties: {
-    attributes: {
-      enabled: true
-    }
-    contentType: 'string'
-    value: applicationInsights.properties.ConnectionString
-  }
 }
 
 resource vnet 'Microsoft.Network/virtualNetworks@2023-04-01' existing = {
@@ -100,7 +94,7 @@ resource webApp 'Microsoft.Web/sites@2022-03-01' = {
       appSettings: [
         {
           name: 'APPLICATIONINSIGHTS_CONNECTION_STRING'
-          value: applicationInsights.properties.ConnectionString
+          value: '@Microsoft.KeyVault(SecretUri=${applicationInsightsConnectionString.properties.secretUri})'
         }
         {
           name: 'ApplicationInsightsAgent_EXTENSION_VERSION'
@@ -130,15 +124,12 @@ resource webApp 'Microsoft.Web/sites@2022-03-01' = {
           name: 'CosmosDbKey'
           value: '@Microsoft.KeyVault(SecretUri=${cosmosDbKey.properties.secretUri})'
         }
-        {
-          name: 'ApplicationInsightsConnectionString'
-          value: '@Microsoft.KeyVault(SecretUri=${cosmosDbKey.properties.secretUri})'
-        }
       ]
       phpVersion: 'OFF'
       netFrameworkVersion: 'v8.0'
       ftpsState: 'FtpsOnly'
       minTlsVersion: '1.2'
+      use32BitWorkerProcess: false
     }
   }
 }
@@ -186,16 +177,16 @@ resource function 'Microsoft.Web/sites@2022-03-01' = {
     siteConfig: {
       appSettings: [
         {
-          name: 'APPLICATIONINSIGHTS_CONNECTION_STRING'
-          value: applicationInsights.properties.ConnectionString
+          name: 'FUNCTIONS_EXTENSION_VERSION'
+          value: '~4'
         }
         {
-          name: 'ApplicationInsightsAgent_EXTENSION_VERSION'
-          value: '~2'
+            name: 'WEBSITE_USE_PLACEHOLDER_DOTNETISOLATED'
+            value: '1'
         }
         {
-          name: 'XDT_MicrosoftApplicationInsights_Mode'
-          value: 'default'
+          name: 'APPINSIGHTS_INSTRUMENTATIONKEY'
+          value: '@Microsoft.KeyVault(SecretUri=${applicationInsightsKey.properties.secretUri})'
         }
         {
           name: 'AzureWebJobsStorage'
@@ -210,16 +201,8 @@ resource function 'Microsoft.Web/sites@2022-03-01' = {
           value: toLower(logParserFunctionName)
         }
         {
-          name: 'FUNCTIONS_EXTENSION_VERSION'
-          value: '~4'
-        }
-        {
           name: 'FUNCTIONS_WORKER_RUNTIME'
           value: 'dotnet-isolated'
-        }
-        {
-          name: 'WEBSITE_RUN_FROM_PACKAGE'
-          value: '0'
         }
         {
           name: 'EventHubConnectionString'
@@ -262,6 +245,9 @@ resource function 'Microsoft.Web/sites@2022-03-01' = {
       netFrameworkVersion: 'v8.0'
       ftpsState: 'FtpsOnly'
       minTlsVersion: '1.2'
+      alwaysOn: true
+      use32BitWorkerProcess: false
+      vnetRouteAllEnabled: true
     }
   }
 }

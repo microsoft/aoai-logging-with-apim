@@ -8,32 +8,15 @@ CosmosClient client = new CosmosClientBuilder(
         .WithConnectionModeGateway()
         .Build();
 
-EventHubProducerClient eventHubProducerClient = new(builder.Configuration["EventHubConnectionString"]);
+CosmosClient cosmosClient = new CosmosClientBuilder(
+        builder.Configuration["CosmosDbUrl"],
+        builder.Configuration["CosmosDbKey"])
+        .WithConnectionModeGateway()
+        .Build();
 
-Loggers loggers = new()
-{
-    {
-        "AzCosmosDB",
-        new LoggerConfiguration()
-        .MinimumLevel.Information()
-        .WriteTo.Console(new JsonFormatter())
-        .WriteTo.AzCosmosDB(
-            client,
-            databaseName: builder.Configuration["CosmosDbDatabaseName"],
-            collectionName: builder.Configuration["CosmosDbContainerName"],
-            partitionKeyProvider: new RequestIdPartitionKeyProvider(),
-            partitionKey:"requestId")
-        .CreateLogger()
-    },
-    {
-        "EventHub",
-        new LoggerConfiguration()
-        .MinimumLevel.Information()
-        .WriteTo.Console(new JsonFormatter())
-        .WriteTo.AzureEventHub(eventHubProducerClient, outputTemplate: "{Message}")
-        .CreateLogger()
-    }
-};
+Container container = cosmosClient.GetContainer(
+    builder.Configuration["CosmosDbDatabaseName"],
+    builder.Configuration["CosmosDbContainerName"]);
 
 // Add services to the container.
 
@@ -42,8 +25,8 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.Services.AddHttpClient();
 builder.Services.AddHttpContextAccessor();
-builder.Services.AddScoped<Loggers>(sp => loggers);
-
+builder.Services.AddSingleton(container);
+builder.Services.AddTransient(sp => new EventHubProducerClient(builder.Configuration["EventHubConnectionString"]));
 WebApplication app = builder.Build();
 
 // Configure the HTTP request pipeline.
