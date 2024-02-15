@@ -27,15 +27,6 @@ param keyVaultName string = '${projectName}-kv'
 ])
 param keyVaultSku string = 'standard'
 
-@description('Event Hub Namespae')
-param eventHubNamespaceName string = '${projectName}-ns'
-
-@description('Event Hub Name')
-param eventHubName string = projectName
-
-@description('Event Hub Sku')
-param eventHubSku string = 'Standard'
-
 @description('Azure API Management Name')
 param apiManagementServiceName string = '${projectName}-apim'
 
@@ -45,8 +36,11 @@ param cosmosDbAccountName string = '${projectName}-cosmosdb'
 @description('Cosmos Db Database Name')
 param cosmosDbDatabaseName string = 'Logs'
 
-@description('Cosmos Db Container Name')
-param cosmosDbContainerName string = 'TempLogs'
+@description('Cosmos Db Log Container Name')
+param cosmosDbLogContainerName string = 'TempLogs'
+
+@description('Cosmos Db Trigger Container Name')
+param cosmosDbTriggerContainerName string = 'LogTriggers'
 
 @description('Content Safety Account Name')
 param contentSafetyAccountName string = '${projectName}-content-safety'
@@ -114,9 +108,6 @@ param keyVaultPrivateEndpointName string = '${projectName}-kv-pep'
 @description('Private Endpoint Name for Azure Open AI')
 param aoaiPrivateEndpointName string = '${projectName}-aoai-pep'
 
-@description('Private Endpoint Name for Event Hub Namespace')
-param eventHubPrivateEndpointName string = '${projectName}-ns-pep'
-
 @description('Private Endpoint Name for Cosmos Db')
 param cosmosDbPrivateEndpointName string = '${projectName}-cosmosdb-pep'
 
@@ -132,7 +123,6 @@ param contentSafetyPrivateEndpointName string = '${projectName}-content-safety-p
 var privateDnsZoneNames = [
   'privatelink.openai.azure.com'
   'privatelink.vaultcore.azure.net'
-  'privatelink.servicebus.windows.net'
   'privatelink.monitor.azure.com'
   'privatelink.documents.azure.com'
   'privatelink.azurewebsites.net'
@@ -189,7 +179,8 @@ module cosmosDb './db/cosmosDb.bicep' = {
     location: location
     accountName: cosmosDbAccountName
     databaseName: cosmosDbDatabaseName
-    containerName: cosmosDbContainerName
+    logContainerName: cosmosDbLogContainerName
+    triggerContainerName: cosmosDbTriggerContainerName
     primaryRegion: location
     vnetName: vnetName
     subnetName: pepSubnetName
@@ -257,34 +248,15 @@ module aoai './/aoai/aoai.bicep' = {
   ]
 }
 
-//## Create Event Hub Namespace and Event Hub so that Azure API Management can send logs to it ##
-module eventHub './eventhub/eventHub.bicep' = {
-  name: 'eventHubDeployment'
-  params: {
-    keyVaultName: keyVaultName
-    eventHubNamespaceName: eventHubNamespaceName
-    eventHubName: eventHubName
-    location: location
-    eventHubSku: eventHubSku
-    privateEndpointName: eventHubPrivateEndpointName
-    vnetName: vnetName
-    subnetName: pepSubnetName
-  }
-  dependsOn: [
-    vnet
-    dns
-  ]
-}
-
 module webApp './webapp/webapp.bicep' = {
   name: 'webAppDeployment'
   params: {
     applicationInsightsName: applicationInsightsName
     appServicePlanName: appServiceName
-    eventHubName: eventHubName
     cosmosDbAccountName: cosmosDbAccountName
     cosmosDbDatabaseName: cosmosDbDatabaseName
-    cosmosDbContainerName: cosmosDbContainerName
+    cosmosDbLogContainerName: cosmosDbLogContainerName
+    cosmosDbTriggerContainerName: cosmosDbTriggerContainerName
     sku: 'S1'
     loggingWebAppName: loggingWebAppName
     logParserFunctionName: logParserFunctionName
@@ -302,7 +274,6 @@ module webApp './webapp/webapp.bicep' = {
   dependsOn: [
     vnet
     dns
-    eventHub
     applicationInsights
     cosmosDb
     keyVault
@@ -376,7 +347,6 @@ module apimPolicyFragment './apim/apimPolicyFragment.bicep' = {
   }
   dependsOn: [
     apim
-    eventHub
   ]
 }
 

@@ -1,6 +1,5 @@
 ﻿// Copyright (c) Microsoft. All rights reserved.
 
-global using Azure.Messaging.EventHubs.Producer;
 global using LoggingWebApp.Models;
 global using Microsoft.AspNetCore.Mvc;
 global using Microsoft.Azure.Cosmos;

@@ -3,12 +3,12 @@
   "Values": {
     "AzureWebJobsStorage": "UseDevelopmentStorage=true",
     "FUNCTIONS_WORKER_RUNTIME": "dotnet-isolated",
-    "EventHubConnectionString": "",
-    "EventHubName": "",
     "CosmosDbUrl": "",
     "CosmosDbKey": "",
     "CosmosDbDatabaseName": "Logs",
-    "CosmosDbContainerName": "TempLogs",
+    "CosmosDbLogContainerName": "TempLogs",
+    "CosmosDbTriggerContainerName": "LogTriggers",
+    "CosmosDbConnectionString": "",
     "ContentSafetyUrl": "",
     "ContentSafetyKey": "",
     "ApplicationInsightsConnectionString": ""

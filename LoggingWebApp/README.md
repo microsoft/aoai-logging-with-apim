@@ -13,7 +13,7 @@ C# sample Web API that works as a proxy.
     - If it's not succeeded, return the error as it is.
 1. While replying the response, it also stores the response log by settings ``request id`` into the cache.
 1. After it returns the response back to APIM, then send the logs to Cosmos DB.
-1. Then send the ``request id`` to Event Hub.
+1. Then send the ``request id`` to the Cosmos DB Container for trigger.
 
 ## How to run in local environment
 

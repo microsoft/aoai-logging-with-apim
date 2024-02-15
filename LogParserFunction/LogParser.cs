@@ -5,12 +5,10 @@ namespace LogParserFunction;
 public class LogParser(
     DataProcessService dataProcessService, 
     TelemetryClient telemetryClient, 
-    EventHubProducerClient eventHubProducerClient, 
     ILogger<LogParser> logger)
 {
     private readonly DataProcessService dataProcessService = dataProcessService;
     private readonly TelemetryClient telemetryClient = telemetryClient;
-    private readonly EventHubProducerClient eventHubProducerClient = eventHubProducerClient;
     private readonly ILogger<LogParser> logger = logger;
 
     /// <summary>
@@ -19,28 +17,45 @@ public class LogParser(
     /// <param name="input"></param>
     /// <returns></returns>
     [Function("LogParser")]
-    public async Task Run([EventHubTrigger("%EventHubName%", Connection = "EventHubConnectionString", IsBatched = false)] string input)
+    public async Task Run([CosmosDBTrigger(
+        databaseName: "%CosmosDbDatabaseName%",
+        containerName: "%CosmosDbTriggerContainerName%",
+        Connection = "CosmosDbConnectionString",
+        LeaseContainerName = "leases",
+        CreateLeaseContainerIfNotExists = true)]IReadOnlyList<TempLog> logs)
     {
-        try
+        List<Exception> exceptions = new();
+        foreach (TempLog log in logs)
         {
-            logger.LogInformation($"Parse {input}");
-            AOAILog? aoaiLog = await dataProcessService.ProcessEventAsync(input);
-            if (aoaiLog is not null)
+            try
             {
-                telemetryClient.TrackTrace(
-                    JsonConvert.SerializeObject(
-                        aoaiLog,
-                        new JsonSerializerSettings() { NullValueHandling = NullValueHandling.Ignore }));
+                logger.LogInformation($"Parse {log.RequestId}");
+                AOAILog? aoaiLog = await dataProcessService.ProcessLogsAsync(log.RequestId);
+                if (aoaiLog is not null)
+                {
+                    telemetryClient.TrackTrace(
+                        JsonConvert.SerializeObject(
+                            aoaiLog,
+                            new JsonSerializerSettings() { NullValueHandling = NullValueHandling.Ignore }));
+                }
+            }
+            catch (Exception ex)
+            {
+                exceptions.Add(ex);
             }
         }
-        catch (Exception ex)
-        {
-            logger.LogWarning($"Failed with error: {ex.Message}. The {input} is push back to the event hub again.");
-            EventDataBatch eventBatch = await eventHubProducerClient.CreateBatchAsync();
-            eventBatch.TryAdd(new Azure.Messaging.EventHubs.EventData(input));
-            await eventHubProducerClient.SendAsync(eventBatch);
-        }
 
-        return;
+        if (exceptions.Count is 1)
+        {
+            throw exceptions.First();
+        }
+        else if (exceptions.Count > 1)
+        {
+            throw new AggregateException(exceptions);
+        }
+        else
+        {
+            return;
+        }
     }
 }

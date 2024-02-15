@@ -14,9 +14,19 @@ CosmosClient cosmosClient = new CosmosClientBuilder(
         .WithConnectionModeGateway()
         .Build();
 
-Container container = cosmosClient.GetContainer(
+Container logContainer = cosmosClient.GetContainer(
     builder.Configuration["CosmosDbDatabaseName"],
-    builder.Configuration["CosmosDbContainerName"]);
+    builder.Configuration["CosmosDbLogContainerName"]);
+
+Container triggerContainer = cosmosClient.GetContainer(
+    builder.Configuration["CosmosDbDatabaseName"],
+    builder.Configuration["CosmosDbTriggerContainerName"]);
+
+Containers containers = new()
+{
+    { "logContainer", logContainer },
+    { "triggerContainer", triggerContainer },
+};
 
 // Add services to the container.
 
@@ -25,8 +35,7 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.Services.AddHttpClient();
 builder.Services.AddHttpContextAccessor();
-builder.Services.AddSingleton(container);
-builder.Services.AddTransient(sp => new EventHubProducerClient(builder.Configuration["EventHubConnectionString"]));
+builder.Services.AddSingleton(containers);
 WebApplication app = builder.Build();
 
 // Configure the HTTP request pipeline.

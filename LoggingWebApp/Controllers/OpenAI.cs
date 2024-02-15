@@ -9,18 +9,15 @@ namespace LoggingWebApp.Controllers;
 /// <param name="factory">IHttpClientFactory</param>
 /// <param name="accessor">IHttpContextAccessor</param>
 /// <param name="container">Cosmos DB Container</param>
-/// <param name="eventHubProducerClient">EventHubProducerClient</param>
 [ApiController]
 [Route("[controller]")]
 public class OpenAI(
     IHttpClientFactory factory,
     IHttpContextAccessor accessor, 
-    Container container, 
-    EventHubProducerClient eventHubProducerClient) : ControllerBase
+    Containers containers) : ControllerBase
 {
     private readonly IHttpContextAccessor accessor = accessor;
-    private readonly Container container = container;
-    private readonly EventHubProducerClient eventHubProducerClient = eventHubProducerClient;
+    private readonly Containers containers = containers;
     private readonly HttpClient httpClient = factory.CreateClient();
     private readonly string LINE_END = $"{Environment.NewLine}{Environment.NewLine}";
 
@@ -108,7 +105,7 @@ public class OpenAI(
                         continue;
                     }
 
-                    headers["Elasped"] = sw.ElapsedMilliseconds;
+                    headers["Elapsed"] = sw.ElapsedMilliseconds;
 
                     TempStreamResponseLog tempStreamResponseLog = new()
                     {
@@ -128,7 +125,7 @@ public class OpenAI(
         else
         {
             JObject responseContent = JObject.Parse(await res.Content.ReadAsStringAsync());
-            headers["Elasped"] = sw.ElapsedMilliseconds;
+            headers["Elapsed"] = sw.ElapsedMilliseconds;
             TempResponseLog tempResponseLog = new()
             {
                 Headers = headers,
@@ -147,18 +144,18 @@ public class OpenAI(
         }
         finally
         {
+            Container logContainer = containers["logContainer"];
+            Container triggerContainer = containers["triggerContainer"];
             Response.OnCompleted(async () =>
             {
                 foreach (TempLog tempLog in tempLogs)
                 {
-                    await container.CreateItemAsync(tempLog,
+                    await logContainer.CreateItemAsync(tempLog,
                         new PartitionKey(requestId));
                 }
-                
-                // Once all logging complete for the request, notifiy to EventHub.
-                EventDataBatch eventBatch = await eventHubProducerClient.CreateBatchAsync();
-                eventBatch.TryAdd(new Azure.Messaging.EventHubs.EventData(requestId));
-                await eventHubProducerClient.SendAsync(eventBatch);
+
+                // Once all logging complete for the request, create trigger item.
+                await triggerContainer.CreateItemAsync(new TempLog() { RequestId = requestId });
             });
         } 
     }

@@ -3,7 +3,7 @@
 namespace LogParser.Services;
 
 /// <summary>
-/// DataProcess Service that process the data from Event Hub
+/// DataProcess Service that process the data from Cosmos DB
 /// </summary>
 /// <param name="tikTokenService">TikTokenService</param>
 /// <param name="resultCacheService">ResultCacheService</param>
@@ -17,18 +17,17 @@ public class DataProcessService(
     private readonly Container container = container;
 
     /// <summary>
-    /// Process the data from Event Hub
+    /// Process the log data from Cosmos DB
     /// </summary>
-    /// <param name="inputs"></param>
-    /// <returns></returns>
-    public async Task<AOAILog?> ProcessEventAsync(string eventBody)
+    /// <param name="requestId"></param>
+    /// <returns>AOAILog</returns>
+    public async Task<AOAILog?> ProcessLogsAsync(string requestId)
     {
-        if (string.IsNullOrEmpty(eventBody) || eventBody.Count() < 5)
+        if (string.IsNullOrEmpty(requestId) || requestId.Count() < 5)
         {
             return default;
         }
 
-        string requestId = eventBody;// JToken.Parse(eventBody.Split("EventHubLog")[1])["RequestId"].ToString();
         QueryDefinition query = new(query: $"SELECT * FROM c WHERE c.requestId = '{requestId}'");
         using FeedIterator<JToken> feed = container.GetItemQueryIterator<JToken>(
             queryDefinition: query
@@ -65,7 +64,7 @@ public class DataProcessService(
             else if (item["type"].ToString() == "Response")
             {
                 TempResponseLog tempResponseLog = JsonConvert.DeserializeObject<TempResponseLog>(item.ToString());
-                elapsed = tempResponseLog.Headers!["Elasped"];
+                elapsed = tempResponseLog.Headers!["Elapsed"];
                 statusCode = tempResponseLog.Headers!["Status-Code"];
                 statusReason = tempResponseLog.Headers!["Status-Reason"];
                 response = await item.ToString().GetResponse(request!, tikTokenService, contentSafetyService);
@@ -73,7 +72,7 @@ public class DataProcessService(
             else if (item["type"].ToString() == "StreamResponse")
             {
                 TempStreamResponseLog tempStreamResponseLog = JsonConvert.DeserializeObject<TempStreamResponseLog>(item.ToString());
-                elapsed = tempStreamResponseLog.Headers!["Elasped"];
+                elapsed = tempStreamResponseLog.Headers!["Elapsed"];
                 statusCode = tempStreamResponseLog.Headers!["Status-Code"];
                 statusReason = tempStreamResponseLog.Headers!["Status-Reason"];
                 sb.Append(item["response"].ToString()+ "\n\n");

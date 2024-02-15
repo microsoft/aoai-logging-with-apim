@@ -1,11 +1,11 @@
 // Copyright (c) Microsoft. All rights reserved.
 
 param keyVaultName string
-param eventHubName string
 param applicationInsightsName string
 param cosmosDbAccountName string
 param cosmosDbDatabaseName string
-param cosmosDbContainerName string
+param cosmosDbLogContainerName string
+param cosmosDbTriggerContainerName string
 param contentSafetyAccountName string
 param loggingWebAppName string
 param logParserFunctionName string
@@ -32,18 +32,13 @@ resource contentSafety 'Microsoft.CognitiveServices/accounts@2023-05-01' existin
   name: contentSafetyAccountName
 }
 
-resource sendConnection 'Microsoft.KeyVault/vaults/secrets@2022-07-01' existing = {
-  name: '${eventHubName}-Send'
-  parent: vault
-}
-
-resource listenSendConnection 'Microsoft.KeyVault/vaults/secrets@2022-07-01' existing = {
-  name: '${eventHubName}-ListenSend'
-  parent: vault
-}
-
 resource cosmosDbKey 'Microsoft.KeyVault/vaults/secrets@2022-07-01' existing = {
   name: toLower(cosmosDbAccountName)
+  parent: vault
+}
+
+resource cosmosDbConnectionString 'Microsoft.KeyVault/vaults/secrets@2022-07-01' existing = {
+  name: '${toLower(cosmosDbAccountName)}-ConnectionString'
   parent: vault
 }
 
@@ -104,10 +99,6 @@ resource webApp 'Microsoft.Web/sites@2022-03-01' = {
           value: 'default'
         }
         {
-          name: 'EventHubConnectionString'
-          value: '@Microsoft.KeyVault(SecretUri=${sendConnection.properties.secretUri})'
-        }
-        {
           name: 'CosmosDbUrl'
           value: cosmosDbAccount.properties.documentEndpoint
         }
@@ -116,8 +107,12 @@ resource webApp 'Microsoft.Web/sites@2022-03-01' = {
           value: cosmosDbDatabaseName
         }
         {
-          name: 'CosmosDbContainerName'
-          value: cosmosDbContainerName
+          name: 'CosmosDbLogContainerName'
+          value: cosmosDbLogContainerName
+        }
+        {
+          name: 'CosmosDbTriggerContainerName'
+          value: cosmosDbTriggerContainerName
         }
         {
           name: 'CosmosDbKey'
@@ -205,14 +200,6 @@ resource function 'Microsoft.Web/sites@2022-03-01' = {
           value: 'dotnet-isolated'
         }
         {
-          name: 'EventHubConnectionString'
-          value: '@Microsoft.KeyVault(SecretUri=${listenSendConnection.properties.secretUri})'
-        }
-        {
-          name: 'EventHubName'
-          value: eventHubName
-        }
-        {
           name: 'CosmosDbUrl'
           value: cosmosDbAccount.properties.documentEndpoint
         }
@@ -221,13 +208,21 @@ resource function 'Microsoft.Web/sites@2022-03-01' = {
           value: cosmosDbDatabaseName
         }
         {
-          name: 'CosmosDbContainerName'
-          value: cosmosDbContainerName
+          name: 'CosmosDbLogContainerName'
+          value: cosmosDbLogContainerName
+        }
+        {
+          name: 'CosmosDbTriggerContainerName'
+          value: cosmosDbTriggerContainerName
         }
         {
           name: 'CosmosDbKey'
           value: '@Microsoft.KeyVault(SecretUri=${cosmosDbKey.properties.secretUri})'
-        }        
+        }    
+        {
+          name: 'CosmosDbConnectionString'
+          value: '@Microsoft.KeyVault(SecretUri=${cosmosDbConnectionString.properties.secretUri})'
+        }     
         {
           name: 'ContentSafetyUrl'
           value: contentSafety.properties.endpoint

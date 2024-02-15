@@ -5,7 +5,8 @@ param accountName string
 param location string
 param primaryRegion string
 param databaseName string
-param containerName string
+param logContainerName string
+param triggerContainerName string
 param vnetName string
 param subnetName string
 param privateEndpointName string
@@ -53,15 +54,45 @@ resource database 'Microsoft.DocumentDB/databaseAccounts/sqlDatabases@2022-05-15
   }
 }
 
-resource container 'Microsoft.DocumentDB/databaseAccounts/sqlDatabases/containers@2022-05-15' = {
+resource logContainer 'Microsoft.DocumentDB/databaseAccounts/sqlDatabases/containers@2022-05-15' = {
   parent: database
-  name: containerName
+  name: logContainerName
   properties: {
     resource: {
-      id: containerName
+      id: logContainerName
       partitionKey: {
         paths: [
           '/requestId'
+        ]
+        kind: 'Hash'
+      }
+      indexingPolicy: {
+        indexingMode: 'consistent'
+        includedPaths: [
+          {
+            path: '/*'
+          }
+        ]
+        excludedPaths: [
+          {
+            path: '/_etag/?'
+          }
+        ]
+      }
+      defaultTtl: 86400
+    }
+  }
+}
+
+resource triggerContainer 'Microsoft.DocumentDB/databaseAccounts/sqlDatabases/containers@2022-05-15' = {
+  parent: database
+  name: triggerContainerName
+  properties: {
+    resource: {
+      id: triggerContainerName
+      partitionKey: {
+        paths: [
+          '/id'
         ]
         kind: 'Hash'
       }
@@ -107,5 +138,17 @@ resource cosmosDbKey 'Microsoft.KeyVault/vaults/secrets@2022-07-01' = {
     }
     contentType: 'string'
     value: account.listKeys().primaryMasterKey
+  }
+}
+
+resource cosmosDbConnectionString 'Microsoft.KeyVault/vaults/secrets@2022-07-01' = {
+  name: '${toLower(accountName)}-ConnectionString'
+  parent: vault
+  properties: {
+    attributes: {
+      enabled: true
+    }
+    contentType: 'string'
+    value: account.listConnectionStrings().connectionStrings[0].connectionString
   }
 }

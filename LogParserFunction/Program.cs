@@ -8,7 +8,7 @@ CosmosClient cosmosClient = new CosmosClientBuilder(
 
 Container container = cosmosClient.GetContainer(
     Environment.GetEnvironmentVariable("CosmosDbDatabaseName"),
-    Environment.GetEnvironmentVariable("CosmosDbContainerName"));
+    Environment.GetEnvironmentVariable("CosmosDbLogContainerName"));
 
 ContentSafetyClient contentSafetyClient = new(
        new Uri(Environment.GetEnvironmentVariable("ContentSafetyUrl")!),
@@ -16,7 +16,7 @@ ContentSafetyClient contentSafetyClient = new(
 
 TikTokenService tikTokenService = new();
 ContentSafetyService contentSafetyService = new(contentSafetyClient);
-DataProcessService eventHubDataProcessService = new(
+DataProcessService dataProcessService = new(
     tikTokenService,
     contentSafetyService,
     container);
@@ -27,9 +27,7 @@ IHost host = new HostBuilder()
     {
         services.AddApplicationInsightsTelemetryWorkerService();
         services.ConfigureFunctionsApplicationInsights();
-        services.AddTransient(sp => eventHubDataProcessService);
-        services.AddTransient(sp => new EventHubProducerClient(
-            Environment.GetEnvironmentVariable("EventHubConnectionString")));
+        services.AddTransient(sp => dataProcessService);
     })
     .Build();
 

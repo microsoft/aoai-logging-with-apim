@@ -10,7 +10,7 @@ This C# sample application demonstrate how to parse these logs to make them iden
 
 ![Architecture](../assets/aoai_apim.svg)
 
-1. The log parser is triggered from the Azure Event Hub that has ``request id``.
+1. The log parser is triggered from the Cosmos DB Change Feed that has ``request id``.
 1. It retrieves all the logs for the ``request id`` from Cosmos DB.
 1. Depending on the response type, it converts the logs into uniform format.
 1. Then it sends the converted logs to Application Insights.
@@ -34,9 +34,10 @@ The log parser is a C# Azure Functions application. We can run it locally by usi
 
 Rename the ``__local.settings.json`` into ``local.settings.json`` and fill the necessary information. 
 
-- __EventHubConnectionString__: We need ``Listen`` and ``Send`` policy.
+- __CosmosDbConnectionString__: The connection string to the Cosmos DB.
 - __CosmosDbUrl__ and __CosmosDbKey__: The CosmosDB access information to store the log documents.
-- __CosmosDbDatabaseName__ and __CosmosDbContainerName__: The database and container names to store the log documents.
+- __CosmosDbDatabaseName__: The database name of the cosmos db.
+- __CosmosDbLogContainerName__ and __CosmosDbTriggerContainerName__: The container names for temporary log store and for trigger the function app.
 - __ContentSafetyUrl__ and __ContentSafetyKey__: The content safety service endpoint and key.
 - __ApplicationInsightsConnectionString__: The application insights connection string to store the log trace.
 

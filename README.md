@@ -56,8 +56,8 @@ This solution uses VNet and Private Endpoints to secure Azure resources.
 ```
 
 - __bicep__: The infrastructure as code (IaC) assets.
-- __LoggingWebApp__: C# sample Web API code to that works as proxy between APIM and AOAI, which send logs to Cosmos DB. Once logging completed, it sends the ``request id`` to the Event Hub.
-- __Log Parser__: C# sample Azure Function code to parse the log in the Cosmos DB. It is triggered via Event Hub notification, then retrieve all the logs for the ``request id``, transform them and store the final log to Application Insights.
+- __LoggingWebApp__: C# sample Web API code to that works as proxy between APIM and AOAI, which send logs to Cosmos DB. Once logging completed, it sends the ``request id`` information to Cosmos DB container to trigger the Log Parser Function via change feed.
+- __LogParserFunction__: C# sample Azure Function code to parse the log in the Cosmos DB. It is triggered via Cosmos DB Change Feed, then retrieve all the logs for the ``request id``, transform them and store the final log to Application Insights.
 - __policies__: APIM policy fragments
 - __PowerBIReports__: contains sample Power BI reports
 - __queries__: contains Kusto and Cosmos DB query that are used for creating report

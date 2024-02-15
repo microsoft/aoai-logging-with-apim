@@ -1,7 +1,6 @@
 // Copyright (c) Microsoft. All rights reserved.
 
 global using Azure.AI.ContentSafety;
-global using Azure.Messaging.EventHubs.Producer;
 global using LogParser.Extensions;
 global using LogParser.Models;
 global using LogParser.Models.ChatCompletion;

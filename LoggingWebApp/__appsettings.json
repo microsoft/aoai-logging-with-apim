@@ -8,6 +8,6 @@
   "CosmosDbUrl": "",
   "CosmosDbKey": "",
   "CosmosDbDatabaseName": "",
-  "CosmosDbContainerName": "",
-  "EventHubConnectionString": ""
+  "CosmosDbLogContainerName": "",
+  "CosmosDbTriggerContainerName": ""
 }
