@@ -1,7 +1,5 @@
 // Copyright (c) Microsoft. All rights reserved.
 
-using Azure.Messaging.EventHubs.Producer;
-
 namespace LoggingWebApp.Controllers;
 
 /// <summary>
@@ -14,7 +12,11 @@ namespace LoggingWebApp.Controllers;
 /// <param name="eventHubProducerClient">EventHubProducerClient</param>
 [ApiController]
 [Route("[controller]")]
-public class OpenAI(IHttpClientFactory factory, IHttpContextAccessor accessor, Container container, EventHubProducerClient eventHubProducerClient) : ControllerBase
+public class OpenAI(
+    IHttpClientFactory factory,
+    IHttpContextAccessor accessor, 
+    Container container, 
+    EventHubProducerClient eventHubProducerClient) : ControllerBase
 {
     private readonly IHttpContextAccessor accessor = accessor;
     private readonly Container container = container;
@@ -83,8 +85,14 @@ public class OpenAI(IHttpClientFactory factory, IHttpContextAccessor accessor, C
         headers["Status-Code"] = (int)res.StatusCode;
         headers["Status-Reason"] = res.ReasonPhrase;
 
+        if (!res.IsSuccessStatusCode)
+        {
+            JObject responseContent = JObject.Parse(await res.Content.ReadAsStringAsync());
+            // Return the response as we don't need to log the AOAI level error.
+            return StatusCode((int)res.StatusCode, responseContent);
+        }
         // Reply SSE as stream results.
-        if (body["stream"] is not null && body["stream"]!.Value<bool>())
+        else if (body["stream"] is not null && body["stream"]!.Value<bool>())
         {
             response.Headers.TryAdd(HeaderNames.ContentType, "text/event-stream");
             response.Headers.TryAdd(HeaderNames.CacheControl, "no-cache");
@@ -129,21 +137,29 @@ public class OpenAI(IHttpClientFactory factory, IHttpContextAccessor accessor, C
             };
             tempLogs.Add(tempResponseLog);
 
-            actionResult = Ok(responseContent);
+            actionResult = this.Ok(responseContent);
         }
-                
-        foreach(TempLog tempLog in tempLogs)
+
+        // Return the response first, then do logging.
+        try
         {
-            await container.CreateItemAsync(tempLog,
-                new PartitionKey(requestId));
+            return actionResult;
         }
-        
-        //TODO: Reserach how to do this async.
-        // Once all logging complete for the request, notifiy to EventHub.
-        EventDataBatch eventBatch = await eventHubProducerClient.CreateBatchAsync();
-        eventBatch.TryAdd(new Azure.Messaging.EventHubs.EventData(requestId));
-        await eventHubProducerClient.SendAsync(eventBatch);
-        
-        return actionResult;
+        finally
+        {
+            Response.OnCompleted(async () =>
+            {
+                foreach (TempLog tempLog in tempLogs)
+                {
+                    await container.CreateItemAsync(tempLog,
+                        new PartitionKey(requestId));
+                }
+                
+                // Once all logging complete for the request, notifiy to EventHub.
+                EventDataBatch eventBatch = await eventHubProducerClient.CreateBatchAsync();
+                eventBatch.TryAdd(new Azure.Messaging.EventHubs.EventData(requestId));
+                await eventHubProducerClient.SendAsync(eventBatch);
+            });
+        } 
     }
 }

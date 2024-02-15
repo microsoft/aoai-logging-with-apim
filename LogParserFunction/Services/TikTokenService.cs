@@ -67,6 +67,12 @@ public class TikTokenService
         return total;
     }
 
+    /// <summary>
+    /// Calcualte token for image input.
+    /// https://platform.openai.com/docs/guides/vision/calculating-costs
+    /// </summary>
+    /// <param name="img"></param>
+    /// <returns></returns>
     private int CalculateFromImage(Image img)
     {
         if (Math.Max(img.Width, img.Height) < 512)

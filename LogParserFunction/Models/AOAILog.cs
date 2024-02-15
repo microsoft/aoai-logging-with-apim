@@ -3,7 +3,7 @@
 namespace LogParser.Models;
 
 /// <summary>
-/// Final log format to logging to Cosmos DB and Log Analytics Workspace
+/// Final log format to logging to Application Insights
 /// </summary>
 public class AOAILog
 {

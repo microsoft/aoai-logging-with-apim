@@ -52,13 +52,12 @@ resource contentSafetyKey 'Microsoft.KeyVault/vaults/secrets@2022-07-01' existin
   parent: vault
 }
 
-resource applicationInsightsConnectionString 'Microsoft.KeyVault/vaults/secrets@2022-07-01' existing = {
-  name: '${applicationInsightsName}-ConnectionString'
-  parent: vault
+resource applicationInsights 'Microsoft.Insights/components@2020-02-02' existing = {
+  name: applicationInsightsName
 }
 
-resource applicationInsightsKey 'Microsoft.KeyVault/vaults/secrets@2022-07-01' existing = {
-  name: applicationInsightsName
+resource applicationInsightsConnectionString 'Microsoft.KeyVault/vaults/secrets@2022-07-01' existing = {
+  name: '${applicationInsightsName}-ConnectionString'
   parent: vault
 }
 
@@ -130,6 +129,7 @@ resource webApp 'Microsoft.Web/sites@2022-03-01' = {
       ftpsState: 'FtpsOnly'
       minTlsVersion: '1.2'
       use32BitWorkerProcess: false
+      alwaysOn: true
     }
   }
 }
@@ -186,7 +186,7 @@ resource function 'Microsoft.Web/sites@2022-03-01' = {
         }
         {
           name: 'APPINSIGHTS_INSTRUMENTATIONKEY'
-          value: '@Microsoft.KeyVault(SecretUri=${applicationInsightsKey.properties.secretUri})'
+          value: applicationInsights.properties.InstrumentationKey
         }
         {
           name: 'AzureWebJobsStorage'

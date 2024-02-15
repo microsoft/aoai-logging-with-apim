@@ -1,5 +1,5 @@
  traces
-| where customDimensions contains "Azure Open AI"
+| where message contains "Azure Open AI"
 | order by timestamp desc
 | extend responseBody = todynamic(tostring(message))
 | extend 

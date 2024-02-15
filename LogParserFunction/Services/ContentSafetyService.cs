@@ -10,6 +10,11 @@ public class ContentSafetyService(ContentSafetyClient contentSafetyClient)
 {
     private readonly ContentSafetyClient contentSafetyClient = contentSafetyClient;
 
+    /// <summary>
+    /// Get Content Filter Results
+    /// </summary>
+    /// <param name="text">input text</param>
+    /// <returns>ContentFilterResults</returns>
     public async Task<ContentFilterResults> GetContentFilterResultsAsync(string text)
     {
         Azure.Response<AnalyzeTextResult> response = 
@@ -45,6 +50,11 @@ public class ContentSafetyService(ContentSafetyClient contentSafetyClient)
         };
     }
 
+    /// <summary>
+    /// Convert severity to match the severiy of AOAI content safety.
+    /// </summary>
+    /// <param name="severityLevel"></param>
+    /// <returns></returns>
     private string GetSeverity(int? severityLevel)
     {
         switch (severityLevel)

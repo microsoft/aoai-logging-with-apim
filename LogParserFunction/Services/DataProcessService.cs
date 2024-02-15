@@ -12,9 +12,9 @@ public class DataProcessService(
     ContentSafetyService contentSafetyService,
     Container container)
 {
-    private readonly TikTokenService _tikTokenService = tikTokenService;
-    private readonly ContentSafetyService _contentSafetyService = contentSafetyService;
-    private readonly Container _container = container;
+    private readonly TikTokenService tikTokenService = tikTokenService;
+    private readonly ContentSafetyService contentSafetyService = contentSafetyService;
+    private readonly Container container = container;
 
     /// <summary>
     /// Process the data from Event Hub
@@ -30,7 +30,7 @@ public class DataProcessService(
 
         string requestId = eventBody;// JToken.Parse(eventBody.Split("EventHubLog")[1])["RequestId"].ToString();
         QueryDefinition query = new(query: $"SELECT * FROM c WHERE c.requestId = '{requestId}'");
-        using FeedIterator<JToken> feed = _container.GetItemQueryIterator<JToken>(
+        using FeedIterator<JToken> feed = container.GetItemQueryIterator<JToken>(
             queryDefinition: query
         );
         List<JToken> items = new();
@@ -68,7 +68,7 @@ public class DataProcessService(
                 elapsed = tempResponseLog.Headers!["Elasped"];
                 statusCode = tempResponseLog.Headers!["Status-Code"];
                 statusReason = tempResponseLog.Headers!["Status-Reason"];
-                response = await item.ToString().GetResponse(request!, _tikTokenService, _contentSafetyService);
+                response = await item.ToString().GetResponse(request!, tikTokenService, contentSafetyService);
             }
             else if (item["type"].ToString() == "StreamResponse")
             {
@@ -85,7 +85,7 @@ public class DataProcessService(
         {
             JObject token = new();
             token["response"] = sb.ToString();
-            response = await token.ToString().GetResponse(request!, _tikTokenService, _contentSafetyService);
+            response = await token.ToString().GetResponse(request!, tikTokenService, contentSafetyService);
         }
 
         AOAILog aoaiLog = new()
@@ -111,7 +111,9 @@ public class DataProcessService(
             Url = tempRequestLog.Headers!["Request-Url"]
         };
 
-        var res = await _container.DeleteAllItemsByPartitionKeyStreamAsync(new PartitionKey(requestId));
+        //https://learn.microsoft.com/en-us/azure/cosmos-db/nosql/how-to-delete-by-partition-key?tabs=dotnet-example
+        // Cosmos DB needs to support delete by partition key feature.
+        await container.DeleteAllItemsByPartitionKeyStreamAsync(new PartitionKey(requestId));
 
         return aoaiLog;
     }
