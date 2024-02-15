@@ -3,3 +3,4 @@ AOAI
 IaC
 Serilog
 dotnet
+VNet

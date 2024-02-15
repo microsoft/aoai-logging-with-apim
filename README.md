@@ -35,16 +35,19 @@ APIM Policy handles network traffic and logging.
 
 ### Network Level
 
-Use Private Endpoint and Virtual Network to secure the connection between resources. This prevents direct access to resources from external. 
+This solution uses VNet and Private Endpoints to secure Azure resources.
 
-![network architecture](/assets/aoai_apim.security.png)
+- APIM: Use External VNet integration mode.
+- Azure Function and Web App: Use VNet integration mode so that they can access Azure resources via VNet and private endpoints.
+- Other resources: Use VNet and private endpoint. Block all external access via Firewall rule.
 
 # Repo structure
 
 ```shell
 ├─assets
 ├─bicep
-├─LogParser
+├─LoggingWebApp
+├─LogParserFunction
 ├─policies
 ├─PowerBIReports
 ├─queries
@@ -53,24 +56,24 @@ Use Private Endpoint and Virtual Network to secure the connection between resour
 ```
 
 - __bicep__: The infrastructure as code (IaC) assets.
-- __Log Parser__: C# sample code to parse the log in the event hub, transform and send them to Application Insights and Cosmos Db
+- __LoggingWebApp__: C# sample Web API code to that works as proxy between APIM and AOAI, which send logs to Cosmos DB. Once logging completed, it sends the ``request id`` to the Event Hub.
+- __Log Parser__: C# sample Azure Function code to parse the log in the Cosmos DB. It is triggered via Event Hub notification, then retrieve all the logs for the ``request id``, transform them and store the final log to Application Insights.
 - __policies__: APIM policy fragments
 - __PowerBIReports__: contains sample Power BI reports
 - __queries__: contains Kusto and Cosmos DB query that are used for creating report
-- __Dockerfile__: Build the Log Parser as a docker image
 
 See the following for more detail in each component.
 
 - [How to use Azure API Management with Azure Open AI](APIM.md)
 - [Infrastructure as Code (bicep)](/bicep/README.md)
-- [C# Log Parser](/LogParser/README.md)
+- [C# Logging Web App](/LoggingWebApp/README.md)
+- [C# Log Parser Function](/LogParserFunction/README.md)
 - [Power BI Reports](/PowerBIReports/README.md)
 
 # Limitations
 
 Currently, there are several limitations.
 
-- Body size exceeds 200 KB: APIM truncate the log if entire data exceeds 200 KB. In that case, the log parser cannot read the log as it's truncated in the middle of the log.
 - Function Calling with stream mode: We are not consolidating the result for function calling in stream mode for now.
 - GPT 4 Vision with URL: If there is authentication/authorization for the image URL that the log parser cannot obtain, it fails to read the image.
 

@@ -22,7 +22,7 @@ We recommend storing AOAI keys in the Key Vault, and create named values by refe
 
 ## Backends
 
-We can use [backends](https://learn.microsoft.com/azure/api-management/backends?tabs=bicep) to manage AOAI accounts. Backend supports specifying headers, so we can use the named value to set AOAI key for each backend. Add ``openai`` as part of the base address.
+We can use [backends](https://learn.microsoft.com/azure/api-management/backends?tabs=bicep) to manage the Logging Web App. Add ``aoai`` at the end as we use this part to create AOAI request.
 
 ![Backend](/assets//backend.png)
 
@@ -40,7 +40,13 @@ Once we added APIs, we can edit the inbound policy to specify backend that we cr
 <policies>
     <inbound>
         <base />
-        <set-backend-service backend-id="AOAIbackend" />
+        <set-header name="AOAI-Api-Key" exists-action="override">
+            <value>{{api-key}}</value>
+        </set-header>
+        <set-header name="Backend-Url" exists-action="override">
+            <value>{{backend-url}}</value>
+        </set-header>
+        <set-backend-service backend-id="logging-web" />
     </inbound>
     <backend>
         <base />
@@ -55,7 +61,7 @@ Once we added APIs, we can edit the inbound policy to specify backend that we cr
 ```
 See [API Management policies overview](https://learn.microsoft.com/azure/api-management/api-management-howto-policies) for more detail about policies.
 
-We need to set API URL suffix as ``oepnai`` that makes the base address as ``https://<apim_account>.azure-api.net/openai
+We need to set API URL suffix as ``oepnai`` that makes the base address as ``https://<apim_account>.azure-api.net/openai``
 
 ![API URL suffix](/assets/api_url_suffix.png)
 
@@ -122,81 +128,72 @@ The users who use this key will be throttled based on the policy.
 
 APIM provides out-of-box logging capabilities. See [How to integrate Azure API Management with Azure Application Insights](https://learn.microsoft.com/azure/api-management/api-management-howto-app-insights?tabs=rest) for detail setup.
 
-## Out-of-box logging and its limitations
+## AOAI Out-of-box logging and its limitations
 
-This provides basic logging, and we can use [Azure-OpenAI-Insights](https://github.com/dolevshor/Azure-OpenAI-Insights) and [Visualize data using Managed Grafana](https://learn.microsoft.com/azure/api-management/visualize-using-managed-grafana-dashboard) to visualize the log.
+AOAI provides basic logging, and we can use [Azure-OpenAI-Insights](https://github.com/dolevshor/Azure-OpenAI-Insights) and [Visualize data using Managed Grafana](https://learn.microsoft.com/azure/api-management/visualize-using-managed-grafana-dashboard) to visualize the log.
 
 However, these logging has some limitations.
 
 - It doesn't log actual request and response body.
 - When using streaming mode, it doesn't provide token usage information. See [How to stream completions](https://cookbook.openai.com/examples/how_to_stream_completions) for more detail.
-- Limited logging destination. Only Application Insights, Azure Monitor and local.
 
-## Custom Logging solution by using Event Hub
+## Custom Logging solution by using Web API proxy
 
-To solve these challenges, we can use Azure Event Hub to send any information for request/response, then handles log information by ourselves.
+To solve these challenges, we can use Web API as proxy between APIM and AOAI that send logs to Cosmos DB.
 
-See [Log events to Azure Event Hubs](https://learn.microsoft.com/azure/api-management/api-management-howto-log-event-hubs?tabs=PowerShell) for detail setup.
+APIM has an Event Hub logger to send any information for request/response, then handles log information by ourselves, however it has several critical limitations.
 
-This solution uses following [policy fragment](https://learn.microsoft.com/azure/api-management/policy-fragments) to log the request and response body as well as additional fields. You can easily add additional fields or remove unused fields from the policy.
+- The 200KB size limit for each log
+- When using AOAI streaming mode, APIM blocks it as it needs to capture all response before sending SSE to the client. 
+
+See [Log events to Azure Event Hubs](https://learn.microsoft.com/azure/api-management/api-management-howto-log-event-hubs?tabs=PowerShell) and [Configure API for server-sent events](https://learn.microsoft.com/en-us/azure/api-management/how-to-server-sent-events) for more detail.
+
+This solution uses C# Web API as a proxy to overcome these limitations. We use following [policy fragment](https://learn.microsoft.com/azure/api-management/policy-fragments) to send the information to the proxy via headers. You can add/remove headers by yourself.
 
 [__inbound-logging__](/policies/inbound-logging.xml)
 ```xml
 <fragment>
-	<log-to-eventhub logger-id="aoailogger">@{
-            var requestBody = context.Request.Body?.As<JObject>(true);
-            var requestUrl = $"{context.Request.Url.Scheme}://{context.Request.Url.Host}:{context.Request.Url.Port}{context.Request.Url.Path}{context.Request.Url.QueryString}";
-            var headers = new JObject();
-            foreach(var header in context.Request.Headers)
-            {
-                if (header.Key == "api-key")
-                {
-                    continue;
-                }
-                headers[header.Key] = string.Join(",", header.Value);
-            }
-            return new JObject(
-                new JProperty("type", "Request"),
-                new JProperty("timestamp", context.Timestamp),
-                new JProperty("subscriptionId", context.Subscription.Id),
-                new JProperty("subscriptionName", context.Subscription.Name),
-                new JProperty("operationId", context.Operation.Id),
-                new JProperty("request", requestBody),
-                new JProperty("serviceName", context.Deployment.ServiceName),
-                new JProperty("requestId", context.RequestId),
-                new JProperty("requestIp", context.Request.IpAddress),
-                new JProperty("url", requestUrl),
-                new JProperty("operationName", context.Operation.Name),
-                new JProperty("region", context.Deployment.Region),
-                new JProperty("apiName", context.Api.Name),
-                new JProperty("apiRevision", context.Api.Revision),
-                new JProperty("method", context.Operation.Method),
-                new JProperty("headers", headers)
-            ).ToString();
-        }
-    </log-to-eventhub>
-</fragment>
-```
-
-[__outbound-logging__](/policies/outbound-logging.xml)
-```xml
-<fragment>
-	<log-to-eventhub logger-id="aoailogger">@{
-            var responseBody = context.Response.Body?.As<string>(true);
-            return new JObject(
-                new JProperty("type", "Response"),
-                new JProperty("timestamp", context.Timestamp),
-                new JProperty("elapsed", context.Elapsed),
-                new JProperty("response", responseBody),
-                new JProperty("statusCode", context.Response.StatusCode),
-                new JProperty("requestId", context.RequestId),
-                new JProperty("statusReason", context.Response.StatusReason)
-            ).ToString();
-        }
-    </log-to-eventhub>
+	<set-header name="Timestamp" exists-action="override">
+		<value>@(context.Timestamp.ToString())</value>
+	</set-header>
+	<set-header name="Subscription-Id" exists-action="override">
+		<value>@(context.Subscription.Id.ToString())</value>
+	</set-header>
+	<set-header name="Subscription-Name" exists-action="override">
+		<value>@(context.Subscription.Name)</value>
+	</set-header>
+	<set-header name="Operation-Id" exists-action="override">
+		<value>@(context.Operation.Id.ToString())</value>
+	</set-header>
+	<set-header name="Service-Name" exists-action="override">
+		<value>@(context.Deployment.ServiceName)</value>
+	</set-header>
+	<set-header name="Request-Id" exists-action="override">
+		<value>@(context.RequestId.ToString())</value>
+	</set-header>
+	<set-header name="Request-Ip" exists-action="override">
+		<value>@(context.Request.IpAddress)</value>
+	</set-header>
+	<set-header name="Operation-Name" exists-action="override">
+		<value>@(context.Operation.Name)</value>
+	</set-header>
+	<set-header name="Region" exists-action="override">
+		<value>@(context.Deployment.Region)</value>
+	</set-header>
+	<set-header name="Api-Name" exists-action="override">
+		<value>@(context.Api.Name)</value>
+	</set-header>
+	<set-header name="Api-Revision" exists-action="override">
+		<value>@(context.Api.Revision)</value>
+	</set-header>
+	<set-header name="Method" exists-action="override">
+		<value>@(context.Operation.Method)</value>
+	</set-header>
 </fragment>
 ```
 Once the policy fragments are defined, we can use it in the API policy scope. We can set it on the top level of the API or in each operation.
+
+The ``forward-request`` is important to support SSE.
 
 ```xml
 <policies>
@@ -205,11 +202,10 @@ Once the policy fragments are defined, we can use it in the API policy scope. We
         <include-fragment fragment-id="inbound-logging" />
     </inbound>
     <backend>
-        <base />
+        <forward-request timeout="120" fail-on-error-status-code="true" buffer-response="false" />
     </backend>
     <outbound>
         <base />
-        <include-fragment fragment-id="outbound-logging" />
     </outbound>
     <on-error>
         <base />
@@ -217,4 +213,4 @@ Once the policy fragments are defined, we can use it in the API policy scope. We
 </policies>
 ```
 
-When the data is sent to the Event Hub instance, we use [Log Parser](/LogParser/) to parse and transform the logs, then store them into Application Insights and/or Cosmos DB instance. The log parser is the one which transforms the log to make various types of logs, such as Completion, Chat Completion, function callings, stream or non-stream, Embeddings results into identical format so that we can easily analyze the log.
+When the [Logging Web API](/LoggingWebApp/) stores all the logs to Cosmos DB account, it sends the ``request id`` to Event Hub so that [Log Parser Function](/LogParserFunction/) is triggered. It transforms the various types of logs, such as Completion, Chat Completion, function callings, stream or non-stream, Embeddings results into identical format so that we can easily analyze the log.
