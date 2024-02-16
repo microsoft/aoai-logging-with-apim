@@ -10,8 +10,8 @@ We often see common challenges when we use Azure Open AI(AOAI) in production env
 - __Monitor Request/Response body and headers__: Customers often needs actual request/response body and headers data to further analyze the usage, but AOAI doesn't provide it by default.
 - __Different Formats__: Each endpoint has slightly different request/response formats. Streaming mode also has quite different and hard to read response format that makes harder to generate reports.
 - __Content Safety for Stream Response__: As stream response returns the result token by token, the content safety results may not be accurate.
-- __Create Usage Dashboard__: Though AOAI integrates with Application Insights, they cannot create granular dashboard by using Power BI.
-- Not all models are available in a single AOAI account, so users have to manage endpoint and key combinations.
+- __Create Usage Dashboard__: Though AOAI integrates with Application Insights, they cannot create granular dashboard by using BI tool such as Power BI because the log doesn't contain enough information for enterprise scenario.
+- __Multiple Endpoints__: Not all models are available in a single AOAI account, so users have to manage endpoint and key combinations.
 
 ## How Azure API Management solves the challenges
 
@@ -49,7 +49,6 @@ This solution uses VNet and Private Endpoints to secure Azure resources.
 ├─LoggingWebApp
 ├─LogParserFunction
 ├─policies
-├─PowerBIReports
 ├─queries
 ├─Dockerfile
 └─README.md
@@ -59,7 +58,6 @@ This solution uses VNet and Private Endpoints to secure Azure resources.
 - __LoggingWebApp__: C# sample Web API code to that works as proxy between APIM and AOAI, which send logs to Cosmos DB. Once logging completed, it sends the ``request id`` information to Cosmos DB container to trigger the Log Parser Function via change feed.
 - __LogParserFunction__: C# sample Azure Function code to parse the log in the Cosmos DB. It is triggered via Cosmos DB Change Feed, then retrieve all the logs for the ``request id``, transform them and store the final log to Application Insights.
 - __policies__: APIM policy fragments
-- __PowerBIReports__: contains sample Power BI reports
 - __queries__: contains Kusto and Cosmos DB query that are used for creating report
 
 See the following for more detail in each component.
@@ -68,7 +66,6 @@ See the following for more detail in each component.
 - [Infrastructure as Code (bicep)](/bicep/README.md)
 - [C# Logging Web App](/LoggingWebApp/README.md)
 - [C# Log Parser Function](/LogParserFunction/README.md)
-- [Power BI Reports](/PowerBIReports/README.md)
 
 # Limitations
 
