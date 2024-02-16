@@ -3,6 +3,7 @@
 param apiManagementServiceName string
 param aoaiName string
 param applicationInsightsName string
+param webAppName string
 
 resource apiManagementService 'Microsoft.ApiManagement/service@2023-03-01-preview' existing = {
   name: apiManagementServiceName
@@ -58,7 +59,10 @@ resource diag 'Microsoft.ApiManagement/service/apis/diagnostics@2023-03-01-previ
   }
 }
 
-var operationPolicy = loadTextContent('../../policies/operation-policy.xml')
+var originalOperationPolicy = loadTextContent('../../policies/operation-policy.xml')
+var operationPolicy1 = replace(originalOperationPolicy, '{{api-key}}', '{{${aoaiName}}}')
+var operationPolicy2 = replace(operationPolicy1, '{{backend-url}}', '{{backend-${aoaiName}}}')
+var operationPolicy = replace(operationPolicy2, '{backend-id}', webAppName)
 
 var deployments = [
   {
@@ -110,6 +114,6 @@ resource operationLevelpolicy 'Microsoft.ApiManagement/service/apis/operations/p
   parent: operations[i]
   properties: {
     format: 'rawxml'
-    value: replace(operationPolicy, '{backend-id}', aoaiName)
+    value: operationPolicy
   }
 }]

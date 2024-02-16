@@ -1,11 +1,16 @@
 // Copyright (c) Microsoft. All rights reserved.
 
+param keyVaultName string
 param workspaceName string
 param applicationInsightsName string
 param privateEndpointName string
 param location string
 param vnetName string
 param subnetName string
+
+resource vault 'Microsoft.KeyVault/vaults@2022-07-01' existing = {
+  name: keyVaultName
+}
 
 resource privateLinkScope 'microsoft.insights/privateLinkScopes@2021-07-01-preview' = {
   name: 'private-link-scope'
@@ -82,4 +87,28 @@ resource appInsightsScopedResource 'Microsoft.Insights/privateLinkScopes/scopedR
   dependsOn: [
     privateEndpoint
   ]
+}
+
+resource applicationInsightsConnectionString 'Microsoft.KeyVault/vaults/secrets@2022-07-01' = {
+  name: '${applicationInsightsName}-ConnectionString'
+  parent: vault
+  properties: {
+    attributes: {
+      enabled: true
+    }
+    contentType: 'string'
+    value: applicationInsights.properties.ConnectionString
+  }
+}
+
+resource applicationInsightsKey 'Microsoft.KeyVault/vaults/secrets@2022-07-01' = {
+  name: applicationInsightsName
+  parent: vault
+  properties: {
+    attributes: {
+      enabled: true
+    }
+    contentType: 'string'
+    value: applicationInsights.properties.InstrumentationKey
+  }
 }

@@ -3,6 +3,7 @@
 param vnetName string
 param pepSubnetName string
 param apimSubnetName string
+param webAppSubnetName string
 param apimNsgName string
 param location string
 param privateDnsZoneNames array
@@ -76,6 +77,20 @@ resource vnet 'Microsoft.Network/virtualNetworks@2023-04-01' = {
         name: pepSubnetName
         properties: {
           addressPrefix: '10.0.1.0/24'
+        }
+      }
+      {
+        name: webAppSubnetName
+        properties: {
+          addressPrefix: '10.0.2.0/24'
+          delegations: [
+            {
+              name: 'Microsoft.Web/serverFarms'
+              properties: {
+                serviceName: 'Microsoft.Web/serverFarms'
+              }
+            }
+          ]
         }
       }
     ]

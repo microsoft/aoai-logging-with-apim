@@ -4,11 +4,10 @@
         <include-fragment fragment-id="inbound-logging" />
     </inbound>
     <backend>
-        <base />
+        <forward-request timeout="120" fail-on-error-status-code="true" buffer-response="false" />
     </backend>
     <outbound>
         <base />
-        <include-fragment fragment-id="outbound-logging" />
     </outbound>
     <on-error>
         <base />

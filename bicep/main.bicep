@@ -27,17 +27,35 @@ param keyVaultName string = '${projectName}-kv'
 ])
 param keyVaultSku string = 'standard'
 
-@description('Event Hub Namespae')
-param eventHubNamespaceName string = '${projectName}-ns'
-
-@description('Event Hub Name')
-param eventHubName string = projectName
-
-@description('Event Hub Sku')
-param eventHubSku string = 'Standard'
-
 @description('Azure API Management Name')
 param apiManagementServiceName string = '${projectName}-apim'
+
+@description('Cosmos Db Account Name')
+param cosmosDbAccountName string = '${projectName}-cosmosdb'
+
+@description('Cosmos Db Database Name')
+param cosmosDbDatabaseName string = 'Logs'
+
+@description('Cosmos Db Log Container Name')
+param cosmosDbLogContainerName string = 'TempLogs'
+
+@description('Cosmos Db Trigger Container Name')
+param cosmosDbTriggerContainerName string = 'LogTriggers'
+
+@description('Content Safety Account Name')
+param contentSafetyAccountName string = '${projectName}-content-safety'
+
+@description('Logging Web App Name')
+param loggingWebAppName string = '${projectName}-logging-web'
+
+@description('Log Parser Function App Name')
+param logParserFunctionName string = '${projectName}-logparser-function'
+
+@description('Log Parser Function Storage Account Name')
+param functionStorageAccountName string = '${projectName}logparserstorage'
+
+@description('App Service Name for Logging and Log Parser')
+param appServiceName string = '${projectName}-asp'
 
 @description('Public IP name for Azure API Management')
 param publicIpName string = '${apiManagementServiceName}-publicip'
@@ -75,6 +93,9 @@ param apimSubnetName string = '${projectName}-apim-subnet'
 @description('Virtual Network Subnet Name for Private Endpoints')
 param pepSubnetName string = '${projectName}-pep-subnet'
 
+@description('Virtual Network Subnet Name for Web App')
+param webAppSubnetName string = '${projectName}-webapp-subnet'
+
 @description('Network Security Group Name for APIM')
 param apimNsgName string = '${projectName}-apim-nsg'
 
@@ -87,14 +108,25 @@ param keyVaultPrivateEndpointName string = '${projectName}-kv-pep'
 @description('Private Endpoint Name for Azure Open AI')
 param aoaiPrivateEndpointName string = '${projectName}-aoai-pep'
 
-@description('Private Endpoint Name for Event Hub Namespace')
-param eventHubPrivateEndpointName string = '${projectName}-ns-pep'
+@description('Private Endpoint Name for Cosmos Db')
+param cosmosDbPrivateEndpointName string = '${projectName}-cosmosdb-pep'
+
+@description('Private Endpoint Name for Logging Web App')
+param loggingWebAppPrivateEndpointName string = '${projectName}-logging-web-pep'
+
+@description('Private Endpoint Name for Log Parser Function App')
+param logParserFunctionPrivateEndpointName string = '${projectName}-logparser-function-pep'
+
+@description('Private Endpoint Name for Content Safety')
+param contentSafetyPrivateEndpointName string = '${projectName}-content-safety-pep'
 
 var privateDnsZoneNames = [
   'privatelink.openai.azure.com'
   'privatelink.vaultcore.azure.net'
-  'privatelink.servicebus.windows.net'
   'privatelink.monitor.azure.com'
+  'privatelink.documents.azure.com'
+  'privatelink.azurewebsites.net'
+  'privatelink.cognitiveservices.azure.com'
 ]
 
 //## Create Dns for Private Endpoint ##
@@ -113,6 +145,7 @@ module vnet './network/vnet.bicep' = {
     vnetName: vnetName
     apimSubnetName: apimSubnetName
     pepSubnetName: pepSubnetName
+    webAppSubnetName: webAppSubnetName
     apimNsgName: apimNsgName
     privateDnsZoneNames: privateDnsZoneNames
   }
@@ -121,24 +154,7 @@ module vnet './network/vnet.bicep' = {
   ]
 }
 
-//## Create Application Insights ##
-module applicationInsights './monitoring/applicationInsights.bicep' = {
-  name: 'applicationInsightsDeployment'
-  params: {
-    location: location
-    applicationInsightsName: applicationInsightsName
-    workspaceName: workspaceName
-    privateEndpointName: applicationInsightsPrivateEndpointName
-    vnetName: vnetName
-    subnetName: pepSubnetName
-  }
-  dependsOn: [
-    vnet
-    dns
-  ]
-}
-
-//## Create Key Vault that stores Azure Open AI Key ##
+//## Create Key Vault that stores Keys ##
 module keyVault './security/keyVault.bicep' = {
   name: 'keyVaultDeployment'
   params: {
@@ -152,6 +168,65 @@ module keyVault './security/keyVault.bicep' = {
   dependsOn: [
     vnet
     dns
+  ]
+}
+
+//## Create Cosmos Db ##
+module cosmosDb './db/cosmosDb.bicep' = {
+  name: 'cosmosDbDeployment'
+  params: {
+    keyVaultName: keyVaultName
+    location: location
+    accountName: cosmosDbAccountName
+    databaseName: cosmosDbDatabaseName
+    logContainerName: cosmosDbLogContainerName
+    triggerContainerName: cosmosDbTriggerContainerName
+    primaryRegion: location
+    vnetName: vnetName
+    subnetName: pepSubnetName
+    privateEndpointName: cosmosDbPrivateEndpointName
+  }
+  dependsOn:[
+    vnet
+    dns
+    keyVault
+  ]
+}
+
+//## Create Application Insights ##
+module applicationInsights './monitoring/applicationInsights.bicep' = {
+  name: 'applicationInsightsDeployment'
+  params: {
+    keyVaultName: keyVaultName
+    location: location
+    applicationInsightsName: applicationInsightsName
+    workspaceName: workspaceName
+    privateEndpointName: applicationInsightsPrivateEndpointName
+    vnetName: vnetName
+    subnetName: pepSubnetName
+  }
+  dependsOn: [
+    vnet
+    dns
+    keyVault
+  ]
+}
+
+//## Create Application Insights ##
+module contentsafety './contentsafety/contentSafety.bicep' = {
+  name: 'contentsafetyDeployment'
+  params: {
+    keyVaultName: keyVaultName
+    location: location
+    contentSafetyAccountName: contentSafetyAccountName
+    privateEndpointName: contentSafetyPrivateEndpointName
+    vnetName: vnetName
+    subnetName: pepSubnetName
+  }
+  dependsOn: [
+    vnet
+    dns
+    keyVault
   ]
 }
 
@@ -173,21 +248,36 @@ module aoai './/aoai/aoai.bicep' = {
   ]
 }
 
-//## Create Event Hub Namespace and Event Hub so that Azure API Management can send logs to it ##
-module eventHub './/eventhub/eventHub.bicep' = {
-  name: 'eventHubDeployment'
+module webApp './webapp/webapp.bicep' = {
+  name: 'webAppDeployment'
   params: {
-    eventHubNamespaceName: eventHubNamespaceName
-    eventHubName: eventHubName
+    applicationInsightsName: applicationInsightsName
+    appServicePlanName: appServiceName
+    cosmosDbAccountName: cosmosDbAccountName
+    cosmosDbDatabaseName: cosmosDbDatabaseName
+    cosmosDbLogContainerName: cosmosDbLogContainerName
+    cosmosDbTriggerContainerName: cosmosDbTriggerContainerName
+    sku: 'S1'
+    loggingWebAppName: loggingWebAppName
+    logParserFunctionName: logParserFunctionName
     location: location
-    eventHubSku: eventHubSku
-    privateEndpointName: eventHubPrivateEndpointName
     vnetName: vnetName
-    subnetName: pepSubnetName
+    subnetName: webAppSubnetName
+    loggingWebAppPrivateEndpointName: loggingWebAppPrivateEndpointName
+    logParserFunctionPrivateEndpointName: logParserFunctionPrivateEndpointName
+    privateEndpointSubnetName: pepSubnetName
+    keyVaultName: keyVaultName
+    contentSafetyAccountName: contentSafetyAccountName
+    functionStorageAccountName: functionStorageAccountName
+    functionStorageAccountType: 'Standard_LRS'
   }
   dependsOn: [
     vnet
     dns
+    applicationInsights
+    cosmosDb
+    keyVault
+    contentsafety
   ]
 }
 
@@ -216,6 +306,7 @@ module apim './apim/apim.bicep' = {
   dependsOn: [
     vnet
     dns
+    webApp
   ]
 }
 
@@ -224,26 +315,14 @@ module roles './security/roles.bicep' = {
   name: 'rolesDeployment'
   params: {
      apimIdentityId: apim.outputs.apimIdentityId
+     loggingWebAppIdentityId: webApp.outputs.loggingWebAppIdentityId
+     logParserFunctionIdentityId: webApp.outputs.logParserFunctionIdentityId
      keyVaultName: keyVaultName
   }
   dependsOn: [
     apim
     keyVault
-  ]
-}
-
-//## Create Event Hub Logger ##
-module apimLogger './apim/apimLogger.bicep' = {
-  name: 'apimLoggerDeployment'
-  params: {
-    apiManagementServiceName: apiManagementServiceName
-    eventHubName: eventHubName
-    eventHubNamespaceName: eventHubNamespaceName
-    loggerName: 'aoailogger' // This name is also used in the policy fragment
-  }
-  dependsOn: [
-    apim
-    eventHub
+    webApp
   ]
 }
 
@@ -268,7 +347,6 @@ module apimPolicyFragment './apim/apimPolicyFragment.bicep' = {
   }
   dependsOn: [
     apim
-    eventHub
   ]
 }
 
@@ -279,12 +357,14 @@ module apimBackend './apim/apimBackend.bicep' = {
      apiManagementServiceName: apiManagementServiceName
      aoaiName: aoaiName
      keyVaultName: keyVaultName
+     webAppName: loggingWebAppName
   }
   dependsOn: [
     aoai
     apim
     keyVault
     roles
+    webApp
   ]
 }
 
@@ -295,10 +375,12 @@ module apimApis './apim/apimApis.bicep' = {
     apiManagementServiceName: apiManagementServiceName
     aoaiName: aoaiName
     applicationInsightsName: applicationInsightsName
+    webAppName: loggingWebAppName
   }
   dependsOn: [
     apim
     aoai
     apimBackend
+    webApp
   ]
 }

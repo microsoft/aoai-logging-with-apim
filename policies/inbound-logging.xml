@@ -1,34 +1,38 @@
 <fragment>
-	<log-to-eventhub logger-id="aoailogger">@{
-            var requestBody = context.Request.Body?.As<JObject>(true);
-            var requestUrl = $"{context.Request.Url.Scheme}://{context.Request.Url.Host}:{context.Request.Url.Port}{context.Request.Url.Path}{context.Request.Url.QueryString}";
-            var headers = new JObject();
-            foreach(var header in context.Request.Headers)
-            {
-                if (header.Key == "api-key")
-                {
-                    continue;
-                }
-                headers[header.Key] = string.Join(",", header.Value);
-            }
-            return new JObject(
-                new JProperty("type", "Request"),
-                new JProperty("timestamp", context.Timestamp),
-                new JProperty("subscriptionId", context.Subscription.Id),
-                new JProperty("subscriptionName", context.Subscription.Name),
-                new JProperty("operationId", context.Operation.Id),
-                new JProperty("request", requestBody),
-                new JProperty("serviceName", context.Deployment.ServiceName),
-                new JProperty("requestId", context.RequestId),
-                new JProperty("requestIp", context.Request.IpAddress),
-                new JProperty("url", requestUrl),
-                new JProperty("operationName", context.Operation.Name),
-                new JProperty("region", context.Deployment.Region),
-                new JProperty("apiName", context.Api.Name),
-                new JProperty("apiRevision", context.Api.Revision),
-                new JProperty("method", context.Operation.Method),
-                new JProperty("headers", headers)
-            ).ToString();
-        }
-    </log-to-eventhub>
+	<set-header name="Timestamp" exists-action="override">
+		<value>@(context.Timestamp.ToString())</value>
+	</set-header>
+	<set-header name="Subscription-Id" exists-action="override">
+		<value>@(context.Subscription.Id.ToString())</value>
+	</set-header>
+	<set-header name="Subscription-Name" exists-action="override">
+		<value>@(context.Subscription.Name)</value>
+	</set-header>
+	<set-header name="Operation-Id" exists-action="override">
+		<value>@(context.Operation.Id.ToString())</value>
+	</set-header>
+	<set-header name="Service-Name" exists-action="override">
+		<value>@(context.Deployment.ServiceName)</value>
+	</set-header>
+	<set-header name="Request-Id" exists-action="override">
+		<value>@(context.RequestId.ToString())</value>
+	</set-header>
+	<set-header name="Request-Ip" exists-action="override">
+		<value>@(context.Request.IpAddress)</value>
+	</set-header>
+	<set-header name="Operation-Name" exists-action="override">
+		<value>@(context.Operation.Name)</value>
+	</set-header>
+	<set-header name="Region" exists-action="override">
+		<value>@(context.Deployment.Region)</value>
+	</set-header>
+	<set-header name="Api-Name" exists-action="override">
+		<value>@(context.Api.Name)</value>
+	</set-header>
+	<set-header name="Api-Revision" exists-action="override">
+		<value>@(context.Api.Revision)</value>
+	</set-header>
+	<set-header name="Method" exists-action="override">
+		<value>@(context.Operation.Method)</value>
+	</set-header>
 </fragment>

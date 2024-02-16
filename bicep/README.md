@@ -17,15 +17,15 @@ The bicep files deploys following resources.
 
 - Network: Virtual Network, Subnet, DNS, Public IP address and private endpoint to secure Azure Resources.
 - Application Insights: Logging metrics from APIM.
-- Key Vault: Stores the key of AOAI.
-- Event Hub Namespace and Event Hub: The logging destination of the APIM.
+- Key Vault: Stores the keys and connection strings.
+- Cosmos Db: The temporary log store.
 - AOAI and Deployments: The AOAI account and three deployments. gpt-35-turbo, gpt-35-turbo-instruct, and text-ada-embedding-002.
 - APIM: The APIM instance
-  - Logger: The logger for the Event Hub.
   - Named Value: Linked to the Key Vault for AOAI key.
   - Backend: Stores the AOAI endpoint information with ``api-key`` header.
   - Policy Fragments: The inbound and outbound logging policy.
   - API and Operations: The API and the operations of Azure Open AI deployments.
+- Web App and Function App: The logging related components.
 
 ## How to test
 
