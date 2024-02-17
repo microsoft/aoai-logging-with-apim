@@ -1,0 +1,17 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/Azure/azure-dev/main/schemas/v1.0/azure.yaml.json
+
+name: aoai-logging-with-apim
+metadata:
+  template: aoai-logging-with-apim@0.0.1-beta
+infra:
+  provider: bicep
+services:
+  loggingWebApi:
+    project: ./LoggingWebApi/
+    language: dotnet
+    host: appservice
+  logParserFunction:
+    project: ./LogParserFunction/
+    language: dotnet
+    host: function
+

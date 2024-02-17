@@ -213,4 +213,4 @@ The ``forward-request`` is important to support SSE.
 </policies>
 ```
 
-When the [Logging Web API](/LoggingWebApp/) stores all the logs to Cosmos DB account, it sends the ``request id`` to Event Hub so that [Log Parser Function](/LogParserFunction/) is triggered. It transforms the various types of logs, such as Completion, Chat Completion, function callings, stream or non-stream, Embeddings results into identical format so that we can easily analyze the log.
+When the [Logging Web API](/LoggingWebApi/) stores all the logs to Cosmos DB account, it sends the ``request id`` to Event Hub so that [Log Parser Function](/LogParserFunction/) is triggered. It transforms the various types of logs, such as Completion, Chat Completion, function callings, stream or non-stream, Embeddings results into identical format so that we can easily analyze the log.

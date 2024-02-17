@@ -1,8 +1,7 @@
 // Copyright (c) Microsoft. All rights reserved.
 
 CosmosClient cosmosClient = new CosmosClientBuilder(
-        Environment.GetEnvironmentVariable("CosmosDbUrl"),
-        Environment.GetEnvironmentVariable("CosmosDbKey"))
+        Environment.GetEnvironmentVariable("CosmosDbConnectionString"))
         .WithConnectionModeGateway()
         .Build();
 
