@@ -41,30 +41,41 @@ This solution uses VNet and Private Endpoints to secure Azure resources.
 - Azure Function and Web App: Use VNet integration mode so that they can access Azure resources via VNet and private endpoints.
 - Other resources: Use VNet and private endpoint. Block all external access via Firewall rule.
 
+# How to deploy the solution
+
+The repo support ``azd`` CLI.
+
+1. Install the ``azd`` CLI. See [Install or update the Azure Developer CLI](https://learn.microsoft.com/azure/developer/azure-developer-cli/install-azd?tabs=winget-windows%2Cbrew-mac%2Cscript-linux&pivots=os-windows) for more detail.
+1. Run ``azd up`` command from the terminal.
+1. Select an Azure subscription and enter the environment name.
+
+The command deploys required Azure resources by following bicep files in [infra](/infra/) directory and deploy applications.
+
 # Repo structure
 
 ```shell
 ├─assets
-├─bicep
-├─LoggingWebApp
+├─infra
+├─LoggingWebApi
 ├─LogParserFunction
 ├─policies
 ├─queries
-├─Dockerfile
+├─azure.yaml
 └─README.md
 ```
 
-- __bicep__: The infrastructure as code (IaC) assets.
-- __LoggingWebApp__: C# sample Web API code to that works as proxy between APIM and AOAI, which send logs to Cosmos DB. Once logging completed, it sends the ``request id`` information to Cosmos DB container to trigger the Log Parser Function via change feed.
+- __infra__: The infrastructure as code (IaC) assets.
+- __LoggingWebApi__: C# sample Web API code to that works as proxy between APIM and AOAI, which send logs to Cosmos DB. Once logging completed, it sends the ``request id`` information to Cosmos DB container to trigger the Log Parser Function via change feed.
 - __LogParserFunction__: C# sample Azure Function code to parse the log in the Cosmos DB. It is triggered via Cosmos DB Change Feed, then retrieve all the logs for the ``request id``, transform them and store the final log to Application Insights.
 - __policies__: APIM policy fragments
 - __queries__: contains Kusto and Cosmos DB query that are used for creating report
+- __azure.yaml__: The main file for ``azd`` command
 
 See the following for more detail in each component.
 
 - [How to use Azure API Management with Azure Open AI](APIM.md)
-- [Infrastructure as Code (bicep)](/bicep/README.md)
-- [C# Logging Web App](/LoggingWebApp/README.md)
+- [Infrastructure as Code (bicep)](/infra/README.md)
+- [C# Logging Web App](/LoggingWebApi/README.md)
 - [C# Log Parser Function](/LogParserFunction/README.md)
 
 # Limitations

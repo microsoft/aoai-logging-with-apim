@@ -35,7 +35,6 @@ The log parser is a C# Azure Functions application. We can run it locally by usi
 Rename the ``__local.settings.json`` into ``local.settings.json`` and fill the necessary information. 
 
 - __CosmosDbConnectionString__: The connection string to the Cosmos DB.
-- __CosmosDbUrl__ and __CosmosDbKey__: The CosmosDB access information to store the log documents.
 - __CosmosDbDatabaseName__: The database name of the cosmos db.
 - __CosmosDbLogContainerName__ and __CosmosDbTriggerContainerName__: The container names for temporary log store and for trigger the function app.
 - __ContentSafetyUrl__ and __ContentSafetyKey__: The content safety service endpoint and key.

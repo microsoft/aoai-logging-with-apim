@@ -5,19 +5,20 @@
     <OutputType>Exe</OutputType>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
+    <UserSecretsId>cdca9380-4770-40f4-b735-6dab5b94319d</UserSecretsId>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="Microsoft.Azure.Functions.Worker" Version="1.21.0" />
     <PackageReference Include="Microsoft.Azure.Functions.Worker.Extensions.CosmosDB" Version="4.6.0" />
-	<PackageReference Include="Microsoft.Azure.Functions.Worker.Extensions.Http" Version="3.1.0" />
-	<PackageReference Include="Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore" Version="1.2.0" />
-	<PackageReference Include="Microsoft.Azure.Functions.Worker.ApplicationInsights" Version="1.1.0" />
-	<PackageReference Include="Microsoft.Azure.Functions.Worker.Sdk" Version="1.17.0" />
-	<PackageReference Include="Microsoft.ApplicationInsights.WorkerService" Version="2.21.0" />
-	<PackageReference Include="Azure.AI.ContentSafety" Version="1.0.0" />
-	<PackageReference Include="Microsoft.Azure.Cosmos" Version="3.39.0-preview.1" />
-	<PackageReference Include="SixLabors.ImageSharp" Version="3.1.2" />
-	<PackageReference Include="TiktokenSharp" Version="1.0.8" />
+	  <PackageReference Include="Microsoft.Azure.Functions.Worker.Extensions.Http" Version="3.1.0" />
+	  <PackageReference Include="Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore" Version="1.2.0" />
+	  <PackageReference Include="Microsoft.Azure.Functions.Worker.ApplicationInsights" Version="1.1.0" />
+	  <PackageReference Include="Microsoft.Azure.Functions.Worker.Sdk" Version="1.17.0" />
+	  <PackageReference Include="Microsoft.ApplicationInsights.WorkerService" Version="2.21.0" />
+	  <PackageReference Include="Azure.AI.ContentSafety" Version="1.0.0" />
+	  <PackageReference Include="Microsoft.Azure.Cosmos" Version="3.39.0-preview.1" />
+	  <PackageReference Include="SixLabors.ImageSharp" Version="3.1.2" />
+	  <PackageReference Include="TiktokenSharp" Version="1.0.8" />
   </ItemGroup>
   <ItemGroup>
     <None Update="host.json">
