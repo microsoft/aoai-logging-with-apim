@@ -90,9 +90,10 @@ public static class StringExtensions
                 await contentSafetyService.GetContentFilterResultsAsync(requestContent);
                 // Count the tokens for request
                 //TODO: Need additional calculation for vision https://platform.openai.com/docs/guides/vision
-                int promptTokens = await tikTokenService.CountToken(((ChatCompletionRequest)request).Messages);
-                // The token count for stream response is the length of the stream response that has Id.
-                int comletionTokens = streamResponses.Where(x => !string.IsNullOrEmpty(x.Id)).Count();
+                // promtTokens adjusted by adding 11 tokens to match the token count of the non stream mode. 
+                int promptTokens = await tikTokenService.CountToken(((ChatCompletionRequest)request).Messages) + 11;
+                // comletionTokens uses the token count of the concatenated content to match the token count of the non stream mode. 
+                int comletionTokens = tikTokenService.CountToken(concatenatedContent);
                 ChatCompletionStreamResponse streamResponse = streamResponses.Where(x => !string.IsNullOrEmpty(x.Id)).First();
 
                 // Create idential response format with non-stream response.
@@ -164,9 +165,8 @@ public static class StringExtensions
                 ContentFilterResults requestContentFilterResults = 
                     await contentSafetyService.GetContentFilterResultsAsync(requestContent);
                  // Count the tokens for request
-                int promptTokens = tikTokenService.CountToken(requestContent);
-                // The token count for stream response is the length of the stream response that has Id.
-                int comletionTokens = streamResponses.Where(x => !string.IsNullOrEmpty(x.Id)).Count();
+                int promptTokens = tikTokenService.CountToken(requestContent) + 11;
+                int comletionTokens = tikTokenService.CountToken(concatenatedContent);
                 CompletionResponse streamResponse = streamResponses.Where(x => !string.IsNullOrEmpty(x.Id)).First();
 
                 // Create idential response format with non-stream response.

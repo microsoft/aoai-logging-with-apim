@@ -70,25 +70,17 @@ var deployments = [
     displayName: 'Embedding'
     description: 'Embedding'
     method: 'POST'
-    urlTemplate: '/deployments/text-embedding-ada-002/embeddings?api-version={api-version}'
+    urlTemplate: '/deployments/{deployment-id}/embeddings?api-version={api-version}'
     backend: aoaiName
   }
   {
-    name: 'GPT_35_Turbo_ChatCompleton'
-    displayName: 'GPT 3.5 Turbo Chat Completion'
-    description: 'GPT 3.5 Turbo Chat Completion'
+    name: 'ChatCompleton'
+    displayName: 'Chat Completion'
+    description: 'Chat Completion'
     method: 'POST'
-    urlTemplate: '/deployments/gpt-35-turbo/chat/completions?api-version={api-version}'
+    urlTemplate: '/deployments/{deployment-id}/chat/completions?api-version={api-version}'
     backend: aoaiName
   }  
-  {
-    name: 'GPT_35_Instruct_Completon'
-    displayName: 'GPT 3.5 Turbo Instruct Completion'
-    description: 'GPT 3.5 Turbo Instruct Completion'
-    method: 'POST'
-    urlTemplate: '/deployments/gpt-35-turbo-instruct/completions?api-version={api-version}'
-    backend: aoaiName
-  }
 ]
 
 resource operations 'Microsoft.ApiManagement/service/apis/operations@2023-03-01-preview' = [for i in range(0, length(deployments)): {
@@ -99,6 +91,11 @@ resource operations 'Microsoft.ApiManagement/service/apis/operations@2023-03-01-
     displayName: deployments[i].displayName
     method: deployments[i].method
     templateParameters: [
+      {
+        name: 'deployment-id'
+        required: true
+        type: 'string'
+      }
       {
         name: 'api-version'
         required: true
