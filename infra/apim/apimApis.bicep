@@ -74,6 +74,14 @@ var deployments = [
     backend: aoaiName
   }
   {
+    name: 'Completon'
+    displayName: 'GPT Completion'
+    description: 'GPT Completion'
+    method: 'POST'
+    urlTemplate: '/deployments/{deployment-id}/completions?api-version={api-version}'
+    backend: aoaiName
+  }
+  {
     name: 'ChatCompleton'
     displayName: 'Chat Completion'
     description: 'Chat Completion'
