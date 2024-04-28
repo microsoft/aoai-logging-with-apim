@@ -1,8 +1,8 @@
-# Azure Open AI Operation Management with Azure API Management
+# Azure OpenAI Operation Management with Azure API Management
 
-## Challenges of Azure Open AI in production
+## Challenges of Azure OpenAI in production
 
-We often see common challenges when we use Azure Open AI(AOAI) in production environment.
+We often see common challenges when we use Azure OpenAI(AOAI) in production environment.
 
 - __Key Management__: AOAI only has primary and secondary key per account, therefore we need to share the same key with users, teams and organizations. However, in most scenario, we need to manage each user separately for performance and monitoring purposes. The risk of sharing the same key is quite severe, for example, if someone reveals or lost the key, all the other users and applications are affected by rotating the existing keys.
 - __Different throttling settings__: Customers want to control how each audience consumes the service, but AOAI doesn't provide granular controls.
@@ -73,7 +73,7 @@ The command deploys required Azure resources by following bicep files in [infra]
 
 See the following for more detail in each component.
 
-- [How to use Azure API Management with Azure Open AI](APIM.md)
+- [How to use Azure API Management with Azure OpenAI](APIM.md)
 - [Infrastructure as Code (bicep)](/infra/README.md)
 - [C# Logging Web App](/LoggingWebApi/README.md)
 - [C# Log Parser Function](/LogParserFunction/README.md)
