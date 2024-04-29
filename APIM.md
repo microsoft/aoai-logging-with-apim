@@ -1,4 +1,4 @@
-# How to use Azure API Management (APIM) with Azure Open AI (AOAI)
+# How to use Azure API Management (APIM) with Azure OpenAI (AOAI)
 
 To solve [the challenges](/README.md#challenges-of-azure-open-ai-in-production), we can use several APIM features.
 
