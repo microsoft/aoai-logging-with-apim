@@ -1,6 +1,7 @@
 <policies>
     <inbound>
         <base />
+        <azure-openai-token-limit tokens-per-minute="{{tokenLimitTPM}}" counter-key="@(context.Subscription.Id)" estimate-prompt-tokens="true" tokens-consumed-header-name="consumed-tokens" remaining-tokens-header-name="remaining-tokens" />
         <include-fragment fragment-id="inbound-logging" />
     </inbound>
     <backend>

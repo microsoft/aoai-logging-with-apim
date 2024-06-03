@@ -1,10 +1,7 @@
 <policies>
     <inbound>
         <base />
-        <set-header name="AOAI-Api-Key" exists-action="override">
-            <value>{{api-key}}</value>
-        </set-header>
-        <set-header name="Backend-Url" exists-action="override">
+        <set-header name="BackendUrl" exists-action="override">
             <value>{{backend-url}}</value>
         </set-header>
         <set-backend-service backend-id="{backend-id}" />

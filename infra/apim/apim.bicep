@@ -18,7 +18,7 @@ resource publicIP 'Microsoft.Network/publicIPAddresses@2023-04-01' existing  = {
   name: publicIpName
 }
 
-resource apiManagementService 'Microsoft.ApiManagement/service@2023-03-01-preview' = {
+resource apiManagementService 'Microsoft.ApiManagement/service@2023-05-01-preview' = {
   name: apiManagementServiceName
   location: location
   sku: {

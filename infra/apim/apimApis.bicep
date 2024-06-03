@@ -4,6 +4,8 @@ param apiManagementServiceName string
 param aoaiName string
 param loggingWebApiName string
 param applicationInsightsName string
+param deployments array
+param tokenLimitTPM int
 
 resource apiManagementService 'Microsoft.ApiManagement/service@2023-03-01-preview' existing = {
   name: apiManagementServiceName
@@ -34,7 +36,8 @@ resource api 'Microsoft.ApiManagement/service/apis@2023-03-01-preview' = {
   }
 }
 
-var apiPolicy = loadTextContent('../../policies/api-policy.xml')
+var originalApiPolicy = loadTextContent('../../policies/api-policy.xml')
+var apiPolicy = replace(originalApiPolicy, '{{tokenLimitTPM}}', string(tokenLimitTPM))
 
 resource topLevelPolicy 'Microsoft.ApiManagement/service/apis/policies@2023-03-01-preview' = {
   name: 'policy'
@@ -64,32 +67,6 @@ var operationPolicy1 = replace(originalOperationPolicy, '{{api-key}}', '{{${aoai
 var operationPolicy2 = replace(operationPolicy1, '{{backend-url}}', '{{backend-${aoaiName}}}')
 var operationPolicy = replace(operationPolicy2, '{backend-id}', loggingWebApiName)
 
-var deployments = [
-  {
-    name: 'Embedding'
-    displayName: 'Embedding'
-    description: 'Embedding'
-    method: 'POST'
-    urlTemplate: '/deployments/{deployment-id}/embeddings?api-version={api-version}'
-    backend: aoaiName
-  }
-  {
-    name: 'Completon'
-    displayName: 'GPT Completion'
-    description: 'GPT Completion'
-    method: 'POST'
-    urlTemplate: '/deployments/{deployment-id}/completions?api-version={api-version}'
-    backend: aoaiName
-  }
-  {
-    name: 'ChatCompleton'
-    displayName: 'Chat Completion'
-    description: 'Chat Completion'
-    method: 'POST'
-    urlTemplate: '/deployments/{deployment-id}/chat/completions?api-version={api-version}'
-    backend: aoaiName
-  }  
-]
 
 resource operations 'Microsoft.ApiManagement/service/apis/operations@2023-03-01-preview' = [for i in range(0, length(deployments)): {
   name: deployments[i].name
