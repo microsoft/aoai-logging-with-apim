@@ -21,8 +21,8 @@ We have more granular control to any APIs by using APIM.
 
 - Consolidate the endpoint access by hiding APIs behind the APIM instance.
 - Granular access control by issuing keys by using [subscriptions feature](https://learn.microsoft.com/azure/api-management/api-management-subscriptions). We can manage the access by API, APIs and/or by products.
-- Use [policies](https://learn.microsoft.com/azure/api-management/api-management-howto-policies) to manage APIs such as setting thresholds, use different backends, set/remove headers, specify cache policies, etc.
-- Manage APIs by using [backends](https://learn.microsoft.com/azure/api-management/backends?tabs=bicep) and security store keys and connection strings by using [named values](https://learn.microsoft.com/azure/api-management/api-management-howto-properties?tabs=azure-portal).
+- Use [policies](https://learn.microsoft.com/azure/api-management/api-management-howto-policies) to manage APIs such as setting token per minutes throttling, use different backends, load-balancing them, set/remove headers, specify cache policies, etc.
+- Manage APIs by using [backends](https://learn.microsoft.com/azure/api-management/backends?tabs=bicep) and security store keys and connection strings by using [named values](https://learn.microsoft.com/azure/api-management/api-management-howto-properties?tabs=azure-portal). Azure resources including AOAI can be accessed via Managed Identity as well.
 - It provides out-of-box monitor capabilities and custom logger that can send log to any supported destination when we need more detailed logging.
 - Use custom logging to log the request and response body so calculate consumed token as well as analyze the content safety.
 

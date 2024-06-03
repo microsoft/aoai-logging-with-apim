@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft. All rights reserved.
 
+global using Azure.Core;
+global using Azure.Identity;
 global using LoggingWebApi.Models;
 global using Microsoft.AspNetCore.Mvc;
 global using Microsoft.Azure.Cosmos;

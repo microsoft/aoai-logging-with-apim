@@ -71,6 +71,14 @@ resource vnet 'Microsoft.Network/virtualNetworks@2023-04-01' = {
           networkSecurityGroup: {
             id: apimNsg.id
           }
+          delegations: [
+            {
+              name: 'Microsoft.Web/serverFarms'
+              properties: {
+                serviceName: 'Microsoft.Web/serverFarms'
+              }
+            }
+          ]
         }
       }
       {

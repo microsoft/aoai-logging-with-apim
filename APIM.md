@@ -16,9 +16,7 @@ First, we need to add API definition for the AOAI. There are several features we
 |Secret|	Literal string or policy expression that is encrypted by API Management|
 |Key vault|	Identifier of a secret stored in an Azure key vault.|
 
-We recommend storing AOAI keys in the Key Vault, and create named values by referencing them.
-
-![Named values](/assets/namedValues.png)
+We use Managed Identity to access AOAI, so we don't need to store the AOAI keys in the Key Vault, but if you need to store the key, then store it in KeyVault and use Named Value to retrieve it.
 
 ## Backends
 
@@ -40,10 +38,7 @@ Once we added APIs, we can edit the inbound policy to specify backend that we cr
 <policies>
     <inbound>
         <base />
-        <set-header name="AOAI-Api-Key" exists-action="override">
-            <value>{{api-key}}</value>
-        </set-header>
-        <set-header name="Backend-Url" exists-action="override">
+        <set-header name="BackendUrl" exists-action="override">
             <value>{{backend-url}}</value>
         </set-header>
         <set-backend-service backend-id="logging-web" />
@@ -73,7 +68,7 @@ With these settings, when the user access ``https://<apim_account>.azure-api.net
 
 # Subscriptions
 
-We hide AOAI keys by using named values and backend feature. Then we can give new key to end users, that is APIM subscription keys.
+We hide AOAI keys by using Managed Identity. We can give new key to end users, that is APIM subscription keys.
 
 [Subscriptions](https://learn.microsoft.com/azure/api-management/api-management-subscriptions) are the most common way for API consumers to access APIs published through an API Management instance.
 
@@ -87,42 +82,15 @@ By default, we use ``Ocp-Apim-Subscription-Key`` as a header key name for the su
 
 ![Subscription key name](/assets/subscription_key_name.png)
 
-## Throttling by subscription key
+## Throttling by Token usage by subscription key
 
-If we want to set the throttling for each subscription key, we need to use [product](https://learn.microsoft.com/azure/api-management/api-management-howto-add-products?tabs=azure-portal) feature. By using product, we can:
-- Set APIs to consume
-- Set policy 
+If we want to set the throttling by token usage for each subscription key, we can use the [the GenAI gateway capability to throttle by token usage](https://learn.microsoft.com/en-us/azure/api-management/azure-openai-token-limit-policy).
 
 For example, we can add policy as below.
 
-![Product policy](/assets/product_policy.png)
-
 ```xml
-<policies>
-    <inbound>
-        <rate-limit calls="5" renewal-period="60" />
-        <quota calls="100" renewal-period="604800" />
-        <base />
-    </inbound>
-    <backend>
-        <base />
-    </backend>
-    <outbound>
-        <base />
-    </outbound>
-    <on-error>
-        <base />
-    </on-error>
-</policies>
+<azure-openai-token-limit tokens-per-minute="{{tokenLimitTPM}}" counter-key="@(context.Subscription.Id)" estimate-prompt-tokens="true" tokens-consumed-header-name="consumed-tokens" remaining-tokens-header-name="remaining-tokens" />
 ```
-
-This policy limits the API calls by using [Rate limits and quotas](https://learn.microsoft.com/azure/api-management/api-management-sample-flexible-throttling#rate-limits-and-quotas).
-
-Then we can create a subscription for the product.
-
-![Alt text](/assets/product_subscription.png)
-
-The users who use this key will be throttled based on the policy.
 
 # Logging
 
@@ -156,34 +124,34 @@ This solution uses C# Web API as a proxy to overcome these limitations. We use f
 	<set-header name="Timestamp" exists-action="override">
 		<value>@(context.Timestamp.ToString())</value>
 	</set-header>
-	<set-header name="Subscription-Id" exists-action="override">
+	<set-header name="SubscriptionId" exists-action="override">
 		<value>@(context.Subscription.Id.ToString())</value>
 	</set-header>
-	<set-header name="Subscription-Name" exists-action="override">
+	<set-header name="SubscriptionName" exists-action="override">
 		<value>@(context.Subscription.Name)</value>
 	</set-header>
-	<set-header name="Operation-Id" exists-action="override">
+	<set-header name="OperationId" exists-action="override">
 		<value>@(context.Operation.Id.ToString())</value>
 	</set-header>
-	<set-header name="Service-Name" exists-action="override">
+	<set-header name="ServiceName" exists-action="override">
 		<value>@(context.Deployment.ServiceName)</value>
 	</set-header>
-	<set-header name="Request-Id" exists-action="override">
+	<set-header name="RequestId" exists-action="override">
 		<value>@(context.RequestId.ToString())</value>
 	</set-header>
-	<set-header name="Request-Ip" exists-action="override">
+	<set-header name="RequestIp" exists-action="override">
 		<value>@(context.Request.IpAddress)</value>
 	</set-header>
-	<set-header name="Operation-Name" exists-action="override">
+	<set-header name="OperationName" exists-action="override">
 		<value>@(context.Operation.Name)</value>
 	</set-header>
 	<set-header name="Region" exists-action="override">
 		<value>@(context.Deployment.Region)</value>
 	</set-header>
-	<set-header name="Api-Name" exists-action="override">
+	<set-header name="ApiName" exists-action="override">
 		<value>@(context.Api.Name)</value>
 	</set-header>
-	<set-header name="Api-Revision" exists-action="override">
+	<set-header name="ApiRevision" exists-action="override">
 		<value>@(context.Api.Revision)</value>
 	</set-header>
 	<set-header name="Method" exists-action="override">
@@ -199,6 +167,7 @@ The ``forward-request`` is important to support SSE.
 <policies>
     <inbound>
         <base />
+        <azure-openai-token-limit tokens-per-minute="{{tokenLimitTPM}}" counter-key="@(context.Subscription.Id)" estimate-prompt-tokens="true" tokens-consumed-header-name="consumed-tokens" remaining-tokens-header-name="remaining-tokens" />
         <include-fragment fragment-id="inbound-logging" />
     </inbound>
     <backend>

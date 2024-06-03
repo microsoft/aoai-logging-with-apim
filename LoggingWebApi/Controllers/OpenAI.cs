@@ -36,22 +36,17 @@ public class OpenAI(
         sw.Start();
         HttpResponse response = accessor.HttpContext!.Response;
         HttpRequest request = accessor.HttpContext!.Request;
-        string requestId = request.Headers["Request-Id"].ToString();
+        string requestId = request.Headers["RequestId"].ToString();
         
         // Default action result is Empty for SSE.
         IActionResult actionResult = new EmptyResult();
-        List<TempLog> tempLogs = new List<TempLog>();
+        List<TempLog> tempLogs = new();
 
         // Log the request
         JObject headers = new();
         foreach (KeyValuePair<string, StringValues> header in request.Headers)
         {
-            if (header.Key is "AOAI-Api-Key")
-            {
-                httpClient.DefaultRequestHeaders.Add("api-key", header.Value.ToString());
-                continue; // Do not log key
-            }
-            else if (header.Key is "Backend-Url")
+            if (header.Key is "BackendUrl")
             {
                 httpClient.BaseAddress = new Uri(header.Value.ToString());
             }
@@ -61,7 +56,7 @@ public class OpenAI(
             }
             headers[header.Key] = string.Join(",", header.Value!);
         }
-        headers["Request-Url"] = $"{request.Path}{request.QueryString}";
+        headers["RequestUrl"] = $"{request.Path}{request.QueryString}";
         TempRequestLog tempRequestLog = new()
         {
             RequestId = requestId,
@@ -73,14 +68,17 @@ public class OpenAI(
         tempLogs.Add(tempRequestLog);
 
         // Foward the request to AOAI endpoint
+        ManagedIdentityCredential managedIdentityCredential = new();
+        AccessToken accessToken = await managedIdentityCredential.GetTokenAsync(new TokenRequestContext(new[] { "https://cognitiveservices.azure.com/" })).ConfigureAwait(false);
+        httpClient.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", accessToken.Token);
         HttpRequestMessage requestMessage = new(HttpMethod.Post, path + Request.QueryString);
         requestMessage.Content = new StringContent(body.ToString(), Encoding.UTF8, "application/json");
         HttpResponseMessage res = await httpClient.SendAsync(requestMessage, HttpCompletionOption.ResponseHeadersRead);
 
         // Log the response
         headers = new();
-        headers["Status-Code"] = (int)res.StatusCode;
-        headers["Status-Reason"] = res.ReasonPhrase;
+        headers["StatusCode"] = (int)res.StatusCode;
+        headers["StatusReason"] = res.ReasonPhrase;
 
         if (!res.IsSuccessStatusCode)
         {

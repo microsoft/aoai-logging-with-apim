@@ -3,7 +3,6 @@
 | order by timestamp desc
 | extend responseBody = todynamic(tostring(message))
 | extend 
-    timestamp = responseBody.timestamp,
     requestId = responseBody.requestId,
     subscriptionId = responseBody.subscriptionId,
     subscriptionName = responseBody.subscriptionName,

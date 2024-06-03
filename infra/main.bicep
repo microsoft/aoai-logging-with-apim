@@ -23,6 +23,9 @@ param resourceGroupName string = ''
 @description('Azure Open AI Name')
 param aoaiName string = ''
 
+@description('Azure Open AI Token Limit TPM. default is 1000')
+param tokenLimitTPM int = 10000
+
 @description('Application Insights Name')
 param applicationInsightsName string = ''
 
@@ -74,13 +77,12 @@ param publicIpName string = ''
 
 @description('Azure API Management Sku')
 @allowed([
-  'Consumption'
   'Developer'
-  'Basic'
-  'Standard'
+  'BasicV2'
+  'StandardV2'
   'Premium'
 ])
-param apimSku string = 'Developer'
+param apimSku string = 'StandardV2'
 
 @description('Azure API Management Sku Count')
 @allowed([
@@ -133,6 +135,48 @@ var privateDnsZoneNames = [
   'privatelink.documents.azure.com'
   'privatelink.azurewebsites.net'
   'privatelink.cognitiveservices.azure.com'
+]
+
+var deployments = [
+  {
+    name: 'Embedding'
+    displayName: 'Embedding'
+    description: 'Embedding'
+    method: 'POST'
+    urlTemplate: '/deployments/{deployment-id}/embeddings?api-version={api-version}'
+    backend: aoaiName
+    modelName: 'text-embedding-ada-002'
+    deploymentName: 'text-embedding-ada-002'
+    version: '2'
+    capacity: 10
+    skuName:'Standard'
+  }
+  {
+    name: 'Completon'
+    displayName: 'GPT Completion'
+    description: 'GPT Completion'
+    method: 'POST'
+    urlTemplate: '/deployments/{deployment-id}/completions?api-version={api-version}'
+    backend: aoaiName
+    modelName: 'gpt-35-turbo-instruct'
+    deploymentName: 'gpt-35-turbo-instruct'
+    version: '0914'
+    capacity: 10
+    skuName:'Standard'
+  }
+  {
+    name: 'ChatCompleton'
+    displayName: 'Chat Completion'
+    description: 'Chat Completion'
+    method: 'POST'
+    urlTemplate: '/deployments/{deployment-id}/chat/completions?api-version={api-version}'
+    backend: aoaiName
+    modelName: 'gpt-4o'
+    deploymentName: 'gpt-4o'
+    version: '2024-05-13'
+    capacity: 10
+    skuName:'GlobalStandard'
+  }  
 ]
 
 // Organize resources in a resource group
@@ -255,10 +299,10 @@ module aoai './ai/aoai.bicep' = {
   params: {
     location: location
     aoaiName: !empty(aoaiName) ? aoaiName : '${abbrs.cognitiveServicesOpenAi}${environmentName}'
-    keyVaultName: !empty(keyVaultName) ? keyVaultName : '${abbrs.keyVaultVaults}${environmentName}'
     vnetName: !empty(vnetName) ? vnetName : '${abbrs.networkVirtualNetworks}${environmentName}'
     pepSubnetName: !empty(pepSubnetName) ? pepSubnetName : '${abbrs.networkVirtualNetworksSubnets}${abbrs.networkPrivateLinkServices}${environmentName}'
     privateEndpointName: !empty(aoaiPrivateEndpointName) ? aoaiPrivateEndpointName : '${abbrs.networkPrivateLinkServices}${abbrs.cognitiveServicesOpenAi}${environmentName}'
+    deployments: deployments
   }
   dependsOn: [
     keyVault
@@ -365,10 +409,10 @@ module roles './security/roles.bicep' = {
   scope: rg
   name: 'rolesDeployment'
   params: {
-     apimIdentityId: apim.outputs.apimIdentityId
-     loggingWebApiIdentityId: loggingWebApi.outputs.loggingWebApiIdentityId
-     logParserFunctionIdentityId: logParserFunction.outputs.logParserFunctionIdentityId
-     keyVaultName: !empty(keyVaultName) ? keyVaultName : '${abbrs.keyVaultVaults}${environmentName}'
+    keyVaultName: !empty(keyVaultName) ? keyVaultName : '${abbrs.keyVaultVaults}${environmentName}'
+    aoaiName: !empty(aoaiName) ? aoaiName : '${abbrs.cognitiveServicesOpenAi}${environmentName}'
+    loggingWebApiIdentityId: loggingWebApi.outputs.loggingWebApiIdentityId
+    logParserFunctionIdentityId: logParserFunction.outputs.logParserFunctionIdentityId
   }
   dependsOn: [
     apim
@@ -411,7 +455,6 @@ module apimBackend './apim/apimBackend.bicep' = {
   params: {
      apiManagementServiceName: !empty(apiManagementServiceName) ? apiManagementServiceName : '${abbrs.apiManagementService}${environmentName}'
      aoaiName: !empty(aoaiName) ? aoaiName : '${abbrs.cognitiveServicesOpenAi}${environmentName}'
-     keyVaultName: !empty(keyVaultName) ? keyVaultName : '${abbrs.keyVaultVaults}${environmentName}'
      loggingWebApiName: !empty(loggingWebApiName) ? loggingWebApiName : '${abbrs.webSitesAppService}loggingweb-${environmentName}'
   }
   dependsOn: [
@@ -433,6 +476,8 @@ module apimApis './apim/apimApis.bicep' = {
     aoaiName: !empty(aoaiName) ? aoaiName : '${abbrs.cognitiveServicesOpenAi}${environmentName}'
     applicationInsightsName: !empty(applicationInsightsName) ? applicationInsightsName : '${abbrs.insightsComponents}${environmentName}'
     loggingWebApiName: !empty(loggingWebApiName) ? loggingWebApiName : '${abbrs.webSitesAppService}loggingweb-${environmentName}'
+    deployments: deployments
+    tokenLimitTPM: tokenLimitTPM
   }
   dependsOn: [
     apim

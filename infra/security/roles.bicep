@@ -1,7 +1,7 @@
 // Copyright (c) Microsoft. All rights reserved.
 
 param keyVaultName string
-param apimIdentityId string
+param aoaiName string
 param loggingWebApiIdentityId string
 param logParserFunctionIdentityId string
 
@@ -9,36 +9,48 @@ resource vault 'Microsoft.KeyVault/vaults@2022-07-01' existing = {
   name: keyVaultName
 }
 
-resource roleDefinition 'Microsoft.Authorization/roleDefinitions@2022-04-01' existing = {
+resource aoai 'Microsoft.CognitiveServices/accounts@2023-10-01-preview' existing = {
+  name: aoaiName 
+}
+
+//Cognitive Services OpenAI User
+resource openAIRoleDefinition 'Microsoft.Authorization/roleDefinitions@2022-04-01' existing = {
+  name:'5e0bd9bd-7b93-4f28-af87-19fc36ad61bd'
+  scope: aoai
+}
+
+resource vaultRoleDefinition 'Microsoft.Authorization/roleDefinitions@2022-04-01' existing = {
   name:'4633458b-17de-408a-b874-0445c86b69e6'
   scope: vault
 }
 
-resource apimRoleAssignment 'Microsoft.Authorization/roleAssignments@2020-04-01-preview' = {
-  scope: vault
-  name: guid(vault.id, apimIdentityId,  roleDefinition.id)
+resource webAppopenAIRoleAssignment 'Microsoft.Authorization/roleAssignments@2020-04-01-preview' = {
+  scope: aoai
+  name: guid(aoai.id, loggingWebApiIdentityId,  openAIRoleDefinition.id)
   properties: {
-    roleDefinitionId: roleDefinition.id
-    principalId: apimIdentityId
-    principalType: 'ServicePrincipal'
-  }
-}
-
-resource webAppRoleAssignment 'Microsoft.Authorization/roleAssignments@2020-04-01-preview' = {
-  scope: vault
-  name: guid(vault.id, loggingWebApiIdentityId,  roleDefinition.id)
-  properties: {
-    roleDefinitionId: roleDefinition.id
+    roleDefinitionId: openAIRoleDefinition.id
     principalId: loggingWebApiIdentityId
     principalType: 'ServicePrincipal'
   }
 }
 
-resource functionAppRoleAssignment 'Microsoft.Authorization/roleAssignments@2020-04-01-preview' = {
+
+resource webAppVaultRoleAssignment 'Microsoft.Authorization/roleAssignments@2020-04-01-preview' = {
   scope: vault
-  name: guid(vault.id, logParserFunctionIdentityId,  roleDefinition.id)
+  name: guid(vault.id, loggingWebApiIdentityId,  vaultRoleDefinition.id)
   properties: {
-    roleDefinitionId: roleDefinition.id
+    roleDefinitionId: vaultRoleDefinition.id
+    principalId: loggingWebApiIdentityId
+    principalType: 'ServicePrincipal'
+  }
+}
+
+
+resource functionAppVaultRoleAssignment 'Microsoft.Authorization/roleAssignments@2020-04-01-preview' = {
+  scope: vault
+  name: guid(vault.id, logParserFunctionIdentityId,  vaultRoleDefinition.id)
+  properties: {
+    roleDefinitionId: vaultRoleDefinition.id
     principalId: logParserFunctionIdentityId
     principalType: 'ServicePrincipal'
   }

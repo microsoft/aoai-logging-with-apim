@@ -65,16 +65,16 @@ public class DataProcessService(
             {
                 TempResponseLog tempResponseLog = JsonConvert.DeserializeObject<TempResponseLog>(item.ToString());
                 elapsed = tempResponseLog.Headers!["Elapsed"];
-                statusCode = tempResponseLog.Headers!["Status-Code"];
-                statusReason = tempResponseLog.Headers!["Status-Reason"];
+                statusCode = tempResponseLog.Headers!["StatusCode"];
+                statusReason = tempResponseLog.Headers!["StatusReason"];
                 response = await item.ToString().GetResponse(request!, tikTokenService, contentSafetyService);
             }
             else if (item["type"].ToString() == "StreamResponse")
             {
                 TempStreamResponseLog tempStreamResponseLog = JsonConvert.DeserializeObject<TempStreamResponseLog>(item.ToString());
                 elapsed = tempStreamResponseLog.Headers!["Elapsed"];
-                statusCode = tempStreamResponseLog.Headers!["Status-Code"];
-                statusReason = tempStreamResponseLog.Headers!["Status-Reason"];
+                statusCode = tempStreamResponseLog.Headers!["StatusCode"];
+                statusReason = tempStreamResponseLog.Headers!["StatusReason"];
                 sb.Append(item["response"].ToString()+ "\n\n");
             }
         }
@@ -89,25 +89,25 @@ public class DataProcessService(
 
         AOAILog aoaiLog = new()
         {
-            ApiName = tempRequestLog.Headers!["Api-Name"],
-            ApiRevision = tempRequestLog.Headers!["Api-Revision"],
+            ApiName = tempRequestLog.Headers!["ApiName"],
+            ApiRevision = tempRequestLog.Headers!["ApiRevision"],
             Elapsed = elapsed,
             Method = tempRequestLog.Headers!["Method"],
             Headers = tempRequestLog.Headers,
-            OperationId = tempRequestLog.Headers!["Operation-Id"],
-            OperationName = tempRequestLog.Headers!["Operation-Name"],
+            OperationId = tempRequestLog.Headers!["OperationId"],
+            OperationName = tempRequestLog.Headers!["OperationName"],
             Region = tempRequestLog.Headers!["Region"],
-            RequestId = tempRequestLog.Headers!["Request-Id"],
-            RequestIp = tempRequestLog.Headers!["Request-Ip"],
+            RequestId = tempRequestLog.Headers!["RequestId"],
+            RequestIp = tempRequestLog.Headers!["RequestIp"],
             Request = request!,
             Response = response!,
-            ServiceName = tempRequestLog.Headers!["Service-Name"],
-            SubscriptionId = tempRequestLog.Headers!["Subscription-Id"],
-            SubscriptionName = tempRequestLog.Headers!["Subscription-Name"],
+            ServiceName = tempRequestLog.Headers!["ServiceName"],
+            SubscriptionId = tempRequestLog.Headers!["SubscriptionId"],
+            SubscriptionName = tempRequestLog.Headers!["SubscriptionName"],
             StatusCode = statusCode,
             StatusReason = statusReason,
             Timestamp = tempRequestLog.Headers!["Timestamp"],
-            Url = tempRequestLog.Headers!["Request-Url"]
+            Url = tempRequestLog.Headers!["RequestUrl"]
         };
 
         //https://learn.microsoft.com/en-us/azure/cosmos-db/nosql/how-to-delete-by-partition-key?tabs=dotnet-example
