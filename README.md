@@ -1,9 +1,11 @@
 ---
 page_type: sample
 languages:
+- azdeveloper
 - bicep
 - csharp
 products:
+- azure
 - azure-api-management
 - azure-openai
 - azure-key-vault
