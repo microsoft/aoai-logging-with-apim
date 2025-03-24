@@ -11,7 +11,7 @@ products:
 - azure-key-vault
 urlFragment: aoai-logging-with-apim
 name: Azure OpenAI Operation Management with Azure API Management
-description: The solution uses Azure APIM and other resources to to use Azure Open AI in production.
+description: The solution uses Azure APIM and other resources to to use Azure OpenAI in production.
 ---
 <!-- YAML front-matter schema: https://review.learn.microsoft.com/en-us/help/contribute/samples/process/onboarding?branch=main#supported-metadata-fields-for-readmemd -->
 
